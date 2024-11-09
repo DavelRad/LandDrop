@@ -5,7 +5,7 @@ from uagents import Model
 from uagents.query import query
 from uagents.envelope import Envelope
  
-AGENT_ADDRESS = "starting agent address here"
+AGENT_ADDRESS = "agent1qfyv0rdcq6qzsa9rylulryuzaxj3xc6sdp8xfl8wdh97fdxmpm027qyyedu"
  
 class TestRequest(Model):
     message: str
