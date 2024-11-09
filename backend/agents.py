@@ -1,9 +1,10 @@
  
 from dotenv import load_dotenv
 from uagents import Agent, Context, Model, Bureau
-from agent_class import Request, Response
+from agent_class import UserRequest, Response
 from agent_funcs import risk_summary
 from api.weather import get_soil_data
+from uagents.setup import fund_agent_if_low
 
 load_dotenv()
  
@@ -12,8 +13,11 @@ risk_analyzer_agent = Agent(
     name="Risk Analyzer Agent",
     seed="Risk Analyzer Secret Phrase",
     port=8001,
-    endpoint="http://localhost:8001/submit",
+    endpoint=["http://127.0.0.1:8001/submit"],
 )
+
+fund_agent_if_low(risk_analyzer_agent.wallet.address())
+
  
 @risk_analyzer_agent.on_event("startup")
 async def startup(ctx: Context):
@@ -22,9 +26,11 @@ async def startup(ctx: Context):
     ctx.logger.info(f"And wallet address: {risk_analyzer_agent.wallet.address()}")
  
 # Decorator to handle incoming queries.
-@risk_analyzer_agent.on_query(model=Request, replies={Response})
-async def query_handler(ctx: Context, sender: str, _query: Request):
+@risk_analyzer_agent.on_query(model=UserRequest, replies={Response})
+async def query_handler(ctx: Context, sender: str, _query: UserRequest):
+    ctx.logger.info(f"there", )
     user_address = sender
+    ctx.logger.info(f"heree")
     ctx.logger.info(f"Query received by the risk analyzer : {user_address}")
 
     try:
@@ -35,7 +41,7 @@ async def query_handler(ctx: Context, sender: str, _query: Request):
     except Exception:
         await ctx.send(sender, Response(text="fail"))
  
-bureau = Bureau(port=8001)
+bureau = Bureau(port=8001, endpoint=["http://127.0.0.1:8001/submit"])
 bureau.add(risk_analyzer_agent)
 
 # Main execution block to run the agent.
