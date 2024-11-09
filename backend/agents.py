@@ -2,7 +2,7 @@
 from dotenv import load_dotenv
 from uagents import Agent, Context, Model, Bureau
 from agent_class import Request, Response
-from agent_funcs import risk_summary
+from agent_funcs import risk_summary, risk_percentage
 from api.weather import get_soil_data
 
 load_dotenv()
@@ -29,11 +29,12 @@ async def query_handler(ctx: Context, sender: str, _query: Request):
 
     try:
         response_land_data = get_soil_data(_query.lat, _query.lon)
-        response = risk_summary(response_land_data)
-
-        await ctx.send(sender, Response(text="success"))
+        summary = risk_summary(response_land_data)
+        percentage = risk_percentage(response_land_data, summary)
+        await ctx.send(sender, Response(text="success", land_data=response_land_data, summary=summary, risk_percentage=int(percentage)))
     except Exception:
         await ctx.send(sender, Response(text="fail"))
+
  
 bureau = Bureau(port=8001)
 bureau.add(risk_analyzer_agent)
