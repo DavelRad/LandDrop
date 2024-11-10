@@ -10,33 +10,71 @@ import { useState } from "react"
 
 interface Message {
     content: string
-    sender: 'user' | 'farmer'
+    sender: 'user' | 'system'
     timestamp: Date
 }
 
 export default function Component() {
     const [messages, setMessages] = useState<Message[]>([])
     const [input, setInput] = useState("")
+    const [isSending, setIsSending] = useState<boolean>(false);
 
-    const handleSend = () => {
+    const getResponse = async (message: string) => {
+        try {
+            setIsSending(true);
+            const response = await fetch("http://localhost:8000/chatbot", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ query: message })
+            })
+
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+
+            const data = await response.json();
+
+            setMessages(prev => [
+                ...prev,
+                {
+                    content: data,
+                    sender: 'system',
+                    timestamp: new Date()
+                }
+            ]);
+        } catch (error) {
+            console.error("Error fetching chatbot response:", error);
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+    const handleSend = async () => {
         if (!input.trim()) return
+
+
 
         setMessages(prev => [...prev, {
             content: input,
             sender: 'user',
             timestamp: new Date()
         }])
+
+
+        await getResponse(input);
         setInput("")
     }
 
     return (
-        <Card className="w-full max-w-lg mx-auto overflow-hidden border-0 shadow-lg">
+        <Card className="w-full max-w-md mx-auto overflow-hidden border-0 shadow-lg">
             <div className="p-4 bg-gradient-to-r from-[#4FC3F7] to-[#1E88E5]">
                 <div className="flex items-center gap-3">
                     <Avatar className="w-8 h-8">
                         <img src="/images/placeholder.png" alt="Farmer Brady" />
                     </Avatar>
-                    <h2 className="text-lg font-semibold text-white">Chat with Farmer Brady</h2>
+                    <h2 className="text-lg font-semibold text-white">Brady</h2>
                 </div>
             </div>
 
@@ -81,6 +119,7 @@ export default function Component() {
                     <Button
                         type="submit"
                         size="icon"
+                        disabled={isSending}
                         className="bg-gradient-to-r from-[#4FC3F7] to-[#1E88E5] text-white hover:opacity-90"
                     >
                         <Send className="w-4 h-4" />

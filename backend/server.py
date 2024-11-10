@@ -6,7 +6,7 @@ from agent_class import UserRequest
 from uagents.query import query
 from uagents.envelope import Envelope
 from fastapi.middleware.cors import CORSMiddleware
-
+import os
 
  
 AGENT_ADDRESS = "agent1qfyv0rdcq6qzsa9rylulryuzaxj3xc6sdp8xfl8wdh97fdxmpm027qyyedu"
@@ -58,6 +58,9 @@ def read_root():
 async def make_agent_call(req: Request):
     model = UserRequest.parse_obj(await req.json())
     try:
+
+        if os.path.exists('chat.json'):
+            os.remove('chat.json')
         res = await agent_query(model)
         with open('state.json', 'r') as file:
             data = json.load(file)
