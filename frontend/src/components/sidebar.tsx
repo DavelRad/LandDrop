@@ -24,10 +24,11 @@ type SidebarProps = {
     soilDataArray: SoilData[],
     dates?: string[]
     setDateState: any,
-    droughtData: number[]
+    droughtData: number[],
+    landDegradation: number[]
 }
 
-export default function Sidebar({ theLocation, soilData, dates, setDateState, soilDataArray, droughtData }: SidebarProps) {
+export default function Sidebar({ theLocation, soilData, dates, setDateState, soilDataArray, droughtData, landDegradation }: SidebarProps) {
     if (!theLocation || !soilData) {
         return null
     }
@@ -140,15 +141,63 @@ export default function Sidebar({ theLocation, soilData, dates, setDateState, so
                                                 drought: droughtData[index] // y-axis value from droughtPercentages
                                             }))
                                             : []
-                                    }>
+                                    }
+                                        margin={{ right: 30 }}
+                                    >
                                         <CartesianGrid strokeDasharray="3 3" />
                                         <XAxis dataKey="date" />
-                                        <YAxis label={{ value: "Drought %", angle: -90, position: 'insideLeft' }} />
+                                        <YAxis label={{ value: "Drought %", angle: -90, position: 'middle' }} tickMargin={200} />
                                         <Tooltip />
                                         <Legend />
                                         <Line type="monotone" dataKey="drought" stroke="#e63946" strokeWidth={4} />
                                     </LineChart>
+
                                 </ResponsiveContainer>
+                                <ResponsiveContainer height={200}>
+                                    <LineChart data={
+                                        Array.isArray(soilDataArray) && Array.isArray(landDegradation)
+                                            ? soilDataArray.map((entry, index) => ({
+                                                date: entry.valid_date, // x-axis value from soilDataArray's valid_date
+                                                landDegradation: landDegradation[index] // y-axis value from droughtPercentages
+                                            }))
+                                            : []
+
+                                    }
+                                        margin={{ right: 30 }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="date" />
+                                        <YAxis label={{ value: "Degradation %", angle: -90, position: 'middle' }} tickMargin={200} />
+                                        <Tooltip />
+                                        <Legend />
+                                        <Line type="monotone" dataKey="landDegradation" stroke="#008000" strokeWidth={4} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                                <ResponsiveContainer height={200}>
+                                    <LineChart
+                                        data={
+                                            Array.isArray(droughtData) && Array.isArray(landDegradation)
+                                                ? droughtData.map((drought, index) => ({
+                                                    date: drought, // Assuming `drought` contains date information for x-axis consistency
+                                                    landDegradation: landDegradation[index]
+                                                }))
+                                                : []
+                                        }
+                                        margin={{ right: 30 }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="date" />
+                                        <YAxis
+                                            label={{ value: "Degradation %", angle: -90, position: 'middle' }}
+                                            tickMargin={200}
+                                        />
+                                        <Tooltip />
+                                        <Legend />
+                                        <Line type="monotone" dataKey="landDegradation" stroke="#008000" strokeWidth={4} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+
+
                             </div>
                         </ScrollArea>
                     </TabsContent>
@@ -161,6 +210,6 @@ export default function Sidebar({ theLocation, soilData, dates, setDateState, so
                     </TabsContent>
                 </Tabs>
             </CardContent>
-        </Card>
+        </Card >
     )
 }

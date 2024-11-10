@@ -62,6 +62,7 @@ export default function Map() {
     const [soilDataArray, setSoilDataArray] = useState<SoilData[]>([]);
     const [checkState, setCheckState] = useState<String>('');
     const [droughtData, setDroughtData] = useState<number[]>([]);
+    const [landDegradation, setLandDegradation] = useState<number[]>([]);
 
 
     const fetchSoilData = async (lat: number, lon: number): Promise<SoilData | null> => {
@@ -86,6 +87,7 @@ export default function Map() {
             setDates(data.soil_data.map((soilData: SoilData) => soilData.valid_date))
             setSoilDataArray(data.soil_data);
             setDroughtData(data["drought_percentage"]);
+            setLandDegradation(data["land_percentage"]);
 
             setCheckState(data['drought_percentage']);
             return !selectedDate ? data.soil_data[data.soil_data.length - 1] : data.soil_data.find((soilData: SoilData) => soilData.valid_date === selectedDate)
@@ -169,7 +171,7 @@ export default function Map() {
                         transition={{ duration: 0.5 }}
                         className="absolute top-0 left-0 right-0 z-10 m-4 max-w-48"
                     >
-                        <Sidebar theLocation={location} soilData={soilData} dates={dates} setDateState={setSelectedDate} soilDataArray={soilDataArray} droughtData={droughtData} />
+                        <Sidebar theLocation={location} soilData={soilData} dates={dates} setDateState={setSelectedDate} soilDataArray={soilDataArray} droughtData={droughtData} landDegradation={landDegradation} />
                     </motion.div>
                 )}
             </AnimatePresence>
