@@ -7,13 +7,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Layers, Thermometer, Droplets, Wind } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import type { SoilData, Location } from './Map'
+import {
+    Select,
+    SelectLabel,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  } from "@/components/ui/select"
+
 
 type SidebarProps = {
     theLocation?: Location
     soilData?: SoilData
+    dates?: string[]
+    setDateState: any
 }
 
-export default function Sidebar({ theLocation, soilData }: SidebarProps) {
+export default function Sidebar({ theLocation, soilData, dates, setDateState }: SidebarProps) {
     if (!theLocation || !soilData) {
         return null
     }
@@ -40,7 +52,21 @@ export default function Sidebar({ theLocation, soilData }: SidebarProps) {
                         <ScrollArea className="h-[calc(100vh-200px)]">
                             <div className="p-6 space-y-6">
                                 <div className="flex justify-between items-center">
-                                    <h3 className="text-lg font-semibold">Date: {soilData.valid_date}</h3>
+                                    <h3 className="text-lg font-semibold">Date: </h3>
+                                    <Select onValueChange={(v) => setDateState(v)}>
+                                        <SelectTrigger className="w-[180px]">
+                                            <SelectValue placeholder={dates ? dates[dates?.length - 1] : "Choose a date"} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectGroup>
+                                                <SelectLabel>Date</SelectLabel>
+                                                {dates?.map((date) => (
+                                                
+                                                    <SelectItem key={date} value={date}>{date}</SelectItem>
+                                                ))}
+                                            </SelectGroup>
+                                        </SelectContent>
+                                    </Select>
                                     <Badge variant="outline" className="text-sm">
                                         {soilData.precip === 0 ? 'No Rain' : `${soilData.precip} mm Rain`}
                                     </Badge>
