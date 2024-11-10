@@ -17,6 +17,14 @@ export type Location = {
     lat: number
     lon: number
 }
+export type Details = {
+    location: string;
+    vegetation_level: string;
+    average_salary: string;
+    food_price_percentage: string;
+    economic_diversity: string;
+    graduation_rate: string;
+  };
 
 export type SoilData = {
     bulk_soil_density: number
@@ -63,13 +71,15 @@ export default function Map() {
     const [checkState, setCheckState] = useState<String>('');
     const [droughtData, setDroughtData] = useState<number[]>([]);
     const [landDegradation, setLandDegradation] = useState<number[]>([]);
+    const [isFuture, setIsFuture] = useState<boolean>(false);
+    const [details, setDetails] = useState<Details | null>(null);
 
 
     const fetchSoilData = async (lat: number, lon: number): Promise<SoilData | null> => {
         try {
             setLoadingStatus(true);
             setSelectedDate('');
-            const response = await fetch(`http://localhost:8000/endpoint`, {
+            const response = await fetch(!isFuture ? `http://localhost:8000/endpoint` : `http://localhost:8000/endpoint2`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -147,6 +157,31 @@ export default function Map() {
         }
     }, [])
 
+    // useEffect(() => {
+    //     const fetchSoilData = async () => {
+    //         if (location) {
+    //             const fetchedSoilData = await fetchSoilData(location.lat, location.lon)
+    //             setSoilData(fetchedSoilData)
+    //         }
+    //         console.log("test");
+    //     }
+        
+    // }, [isFuture]);
+    
+    useEffect(() => {
+        const getDetails = async () => {
+            const response = await fetch(`http://localhost:8000/endpoint3`, {method: "POST"})
+            const data = await response.json();
+            setDetails(data);
+            console.log("this here bro",data);
+        }
+        getDetails();
+    }, [location]);
+
+    useEffect(() => {
+        console.log("details here lol ", details);
+    }, [details])
+
     return (
         <div className="relative h-screen">
             <AnimatePresence>
@@ -171,7 +206,7 @@ export default function Map() {
                         transition={{ duration: 0.5 }}
                         className="absolute top-0 left-0 right-0 z-10 m-4 max-w-48"
                     >
-                        <Sidebar theLocation={location} soilData={soilData} dates={dates} setDateState={setSelectedDate} soilDataArray={soilDataArray} droughtData={droughtData} landDegradation={landDegradation} />
+                        <Sidebar theLocation={location} soilData={soilData} dates={dates} setDateState={setSelectedDate} soilDataArray={soilDataArray} droughtData={droughtData} landDegradation={landDegradation} setTimeState={setIsFuture} details={details}/>
                     </motion.div>
                 )}
             </AnimatePresence>
