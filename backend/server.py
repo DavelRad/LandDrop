@@ -57,10 +57,11 @@ def read_root():
 @app.post("/endpoint")
 async def make_agent_call(req: Request):
     model = UserRequest.parse_obj(await req.json())
-    #print(model)
     try:
         res = await agent_query(model)
-        return f"successful call - agent response: {res}"
+        with open('state.json', 'r') as file:
+            data = json.load(file)
+        return data
     except Exception:
         return "unsuccessful agent call"
  
@@ -69,10 +70,9 @@ async def make_agent_call(req: Request):
     model = UserRequest.parse_obj(await req.json())
     try:
         res = await chatbot_agent_query(model)
-        if res:
-            return {"status": "success", "data": res}
-        else:
-            return {"status": "fail", "message": "No data found for the location."}
+        with open('chat.json', 'r') as file:
+            data = json.load(file)
+        return data
     except Exception as e:
         return {"status": "error", "message": "Unsuccessful agent call", "details": str(e)}
  

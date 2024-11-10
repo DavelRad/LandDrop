@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from uagents import Agent, Context, Model, Bureau
 from agent_class import UserRequest, Response
 from agent_funcs import risk_summary
-from api.functions import get_soil_data
+from api.weather import get_soil_data
 from uagents.setup import fund_agent_if_low
 import json
 from agent_funcs import chatbot_query
@@ -63,11 +63,11 @@ async def query_handler(ctx: Context, sender: str, _query: UserRequest):
             )
             ctx.logger.info(f"response {response}")
             
-            with open("response.json", "w") as f:
+            with open("chat.json", "w") as f:
                 json.dump(response, f, indent=4)
         else:
             response = "Please select a location within a city."
-            with open("response.json", "w") as f:
+            with open("chat.json", "w") as f:
                 json.dump(response, f, indent=4)
         await ctx.send(sender, Response(text="success"))
     except Exception:

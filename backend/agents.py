@@ -4,7 +4,8 @@ from dotenv import load_dotenv
 from uagents import Agent, Context, Model, Bureau
 from agent_class import UserRequest, Response
 from agent_funcs import drought_risk_percentage, land_degradation_risk_percentage, chatbot_query, risk_summary
-from api.functions import get_address_from_coords, get_soil_data, get_population_data, get_poverty_data, generate_soil_data_predictions, predict_land_percentage, predict_drought_percentage, generate_summary_prediction
+from api.location import get_address_from_coords, get_population_from_coords, get_poverty_from_coords
+from api.weather import get_soil_data
 from uagents.setup import fund_agent_if_low
 
 load_dotenv()
@@ -37,8 +38,8 @@ async def query_handler(ctx: Context, sender: str, _query: UserRequest):
     try:
         response_land_data = get_soil_data(_query.lat, _query.lon)
         location = get_address_from_coords(_query.lat, _query.lon)   
-        population = get_population_data(_query.lat, _query.lon)
-        poverty = get_poverty_data(_query.lat, _query.lon)
+        population = get_population_from_coords(_query.lat, _query.lon)
+        poverty = get_poverty_from_coords(_query.lat, _query.lon)
 
         land_percentage_response = land_degradation_risk_percentage(response_land_data["data"])
         drought_percentage_response = drought_risk_percentage(response_land_data["data"])
@@ -81,43 +82,9 @@ predictor_agent = Agent(
     endpoint=["http://127.0.0.1:8001/submit"],
 )
 
-PREDICTOR_AGENT_ADDRESS = "agent1qwxe5ktzqqjk8g48nj3h3mhz3gg43wte37ejj8vtncs99sm6yyxsy2p0g0k"
-
-@predictor_agent.on_event("startup")
-async def startup(ctx: Context):
-    ctx.logger.info(f"Starting up {predictor_agent.name}")
-    ctx.logger.info(f"With address: {predictor_agent.address}")
-    ctx.logger.info(f"And wallet address: {predictor_agent.wallet.address()}")
-
-@predictor_agent.on_query(model=UserRequest, replies={Response})
-async def query_handler(ctx: Context, sender: str, _query: UserRequest):
-    ctx.logger.info(f"Predictor agent received query from {sender}")
-    with open("state.json", "r") as f:
-        state_data = json.load(f)
-    prediction_json = {
-        "location": state_data["location"],
-        "population": state_data["population"],
-        "poverty": state_data["poverty"]
-    }
-
-    # Helper functions to process and predict each section of data
-    prediction_json["soil_data"] = await generate_soil_data_predictions(state_data["soil_data"])
-    prediction_json["land_percentage"] = await predict_land_percentage(state_data["soil_data"],state_data["land_percentage"])
-    prediction_json["drought_percentage"] = await predict_drought_percentage(state_data["drought_percentage"])
-    prediction_json["summary"] = await generate_summary_prediction(state_data["summary"])
-
-    # Save prediction JSON to future-state.json
-    with open("future-state.json", "w") as f:
-        json.dump(prediction_json, f, indent=4)
-
-    # Send a response back
-    await ctx.send(sender, Response(text="Prediction JSON generated successfully."))
-
 bureau = Bureau(port=8001, endpoint=["http://127.0.0.1:8001/submit"])
 bureau.add(analyzer_agent)
-bureau.add(predictor_agent)
 
 # Main execution block to run the agent.
 if __name__ == "__main__":
     bureau.run()
-    
