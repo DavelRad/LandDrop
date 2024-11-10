@@ -52,7 +52,7 @@ def drought_risk_percentage(data):
 ]
     response = talk_to_chatbot(messages)
     return response
-def chatbot_query(query, location, summary, soil_data, population, poverty, land_percentage, drought_percentage):
+def chatbot_query(query, location, summary, soil_data, population, poverty, land_percentage, drought_percentage, chat_history):
 
     context = f"""Here is the information about the location:
     \nLocation: {location}\n
@@ -62,6 +62,7 @@ def chatbot_query(query, location, summary, soil_data, population, poverty, land
     Poverty: {poverty}\n"
     Land Degradation Risk throughout the week: {land_percentage}\n
     Drought Risk throughout the week: {drought_percentage}\n
+    Conversation History: {chat_history}\n
     """
 
     messages = [
