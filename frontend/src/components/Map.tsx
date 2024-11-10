@@ -61,6 +61,7 @@ export default function Map() {
     const [dates, setDates] = useState<string[]>([])
     const [soilDataArray, setSoilDataArray] = useState<SoilData[]>([]);
     const [checkState, setCheckState] = useState<String>('');
+    const [droughtData, setDroughtData] = useState<number[]>([]);
 
 
     const fetchSoilData = async (lat: number, lon: number): Promise<SoilData | null> => {
@@ -81,10 +82,12 @@ export default function Map() {
             }
 
             const data = await response.json()
+            // console.log("Data");
             setDates(data.soil_data.map((soilData: SoilData) => soilData.valid_date))
             setSoilDataArray(data.soil_data);
+            setDroughtData(data["drought_percentage"]);
 
-            setCheckState(data.soil_data);
+            setCheckState(data['drought_percentage']);
             return !selectedDate ? data.soil_data[data.soil_data.length - 1] : data.soil_data.find((soilData: SoilData) => soilData.valid_date === selectedDate)
         } catch (error) {
             console.error('Error fetching soil data:', error)
@@ -95,7 +98,7 @@ export default function Map() {
     }
 
     useEffect(() => {
-        console.log("Soil data, ", checkState);
+        console.log("State here wooo whoooo ", checkState);
     }, [checkState])
 
     useEffect(() => {
@@ -116,7 +119,6 @@ export default function Map() {
             center: [-74.5, 40],
             zoom: 9,
         })
-
 
         map.current.on('click', async (e) => {
             const clickedLocation = {
@@ -167,7 +169,7 @@ export default function Map() {
                         transition={{ duration: 0.5 }}
                         className="absolute top-0 left-0 right-0 z-10 m-4 max-w-48"
                     >
-                        <Sidebar theLocation={location} soilData={soilData} dates={dates} setDateState={setSelectedDate} />
+                        <Sidebar theLocation={location} soilData={soilData} dates={dates} setDateState={setSelectedDate} soilDataArray={soilDataArray} droughtData={droughtData} />
                     </motion.div>
                 )}
             </AnimatePresence>
