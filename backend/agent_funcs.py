@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import json
-from api.ai import talk_to_chatbot
-from instructions import DROUGHT_RISK_PERCENTAGE_PROMPT, LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT, DROUGHT_RISK_PERCENTAGE_PROMPT,CHATBOT_INSTRUCTIONS, RISK_SUMMARY_PROMPT, SOIL_DATA_PREDICTOR_INSTRUCTION, LAND_RISK_PREDICTOR_PROMPT, DROUGHT_RISK_PREDICTOR_PROMPT, PREDICTION_RISK_SUMMARY_PROMPT
+from api.ai import talk_to_chatbot, talk_to_chatbot_2
+from instructions import DROUGHT_RISK_PERCENTAGE_PROMPT, LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT, DROUGHT_RISK_PERCENTAGE_PROMPT,CHATBOT_INSTRUCTIONS, RISK_SUMMARY_PROMPT, SOIL_DATA_PREDICTOR_INSTRUCTION, LAND_RISK_PREDICTOR_PROMPT, DROUGHT_RISK_PREDICTOR_PROMPT, PREDICTION_RISK_SUMMARY_PROMPT, ECONOMIST_DATA_PROMPT
 import re
 
 load_dotenv()
@@ -16,7 +16,7 @@ def risk_summary(data):
         },
         {
             "role": "user",
-            "content": f"This is the data you need to analyze: {data}"
+            "content": f"This is the data you need to analyze: {data}\n MAKE IT SHORT!"
         }
     ]
 
@@ -114,7 +114,7 @@ async def generate_soil_data_predictions(soil_data: list) -> list:
             "content": f"Here is the historical soil data: {soil_data}"
         }
     ]
-    response = talk_to_chatbot(messages)
+    response = talk_to_chatbot_2(messages)
     print(f"Raw LLM response: {response}")
     try:
         predicted_values_list = json.loads(response)  # Assuming LLM response is JSON-parsable
@@ -219,14 +219,39 @@ async def generate_summary_prediction(summary, soil_data, land_percentage, droug
         },
         {
             "role": "user",
-            "content": f"This is the data you need to analyze: {context}"
+            "content": f"This is the data you need to analyze: {context}\n MAKE IT SHORT!"
         }
     ]
 
     # Call the chatbot function
-    response = talk_to_chatbot(messages)
+    response = talk_to_chatbot_2(messages)
 
     # Clean the response by removing any extraneous formatting
     cleaned_response = re.sub(r'^```json|```$', '', response.strip())
     
     return cleaned_response
+
+def get_economist_data(location):
+    """
+    Function to retrieve all economist data for the specified location in one call.
+    """
+    messages = [
+        {
+            "role": "system",
+            "content": ECONOMIST_DATA_PROMPT
+        },
+        {
+            "role": "user",
+            "content": f"Provide the economist data for the following location: {location}"
+        }
+    ]
+
+    # Call the chatbot function
+    response = talk_to_chatbot(messages)
+    try:
+        # Parse the response to ensure it's a JSON-parsable list
+        economist_data_list = json.loads(response)
+        return economist_data_list
+    except json.JSONDecodeError:
+        print(f"Failed to parse LLM response: {response}")
+        return []

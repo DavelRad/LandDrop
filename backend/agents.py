@@ -3,7 +3,7 @@ import json
 from dotenv import load_dotenv
 from uagents import Agent, Context, Model, Bureau
 from agent_class import UserRequest, Response
-from agent_funcs import drought_risk_percentage, land_degradation_risk_percentage, chatbot_query, risk_summary, generate_soil_data_predictions, predict_land_percentage, predict_drought_percentage, generate_summary_prediction
+from agent_funcs import drought_risk_percentage, get_economist_data, land_degradation_risk_percentage, chatbot_query, risk_summary, generate_soil_data_predictions, predict_land_percentage, predict_drought_percentage, generate_summary_prediction
 from api.location import get_address_from_coords, get_population_from_coords, get_poverty_from_coords 
 from api.weather import get_soil_data
 from agent_funcs import drought_risk_percentage, land_degradation_risk_percentage, chatbot_query, risk_summary
@@ -13,24 +13,24 @@ from uagents.setup import fund_agent_if_low
 load_dotenv()
  
 # Initialize the agent with its configuration.
-analyzer_agent = Agent(
+environmentalist_agent = Agent(
     name="Risk Analyzer Agent",
     seed="Risk Analyzer Secret Phrase",
     port=8001,
     endpoint=["http://127.0.0.1:8001/submit"],
 )
 
-fund_agent_if_low(analyzer_agent.wallet.address())
+fund_agent_if_low(environmentalist_agent.wallet.address())
 
  
-@analyzer_agent.on_event("startup")
+@environmentalist_agent.on_event("startup")
 async def startup(ctx: Context):
-    ctx.logger.info(f"Starting up {analyzer_agent.name}")
-    ctx.logger.info(f"With address: {analyzer_agent.address}")
-    ctx.logger.info(f"And wallet address: {analyzer_agent.wallet.address()}")
+    ctx.logger.info(f"Starting up {environmentalist_agent.name}")
+    ctx.logger.info(f"With address: {environmentalist_agent.address}")
+    ctx.logger.info(f"And wallet address: {environmentalist_agent.wallet.address()}")
  
 # Decorator to handle incoming queries.
-@analyzer_agent.on_query(model=UserRequest, replies={Response})
+@environmentalist_agent.on_query(model=UserRequest, replies={Response})
 async def query_handler(ctx: Context, sender: str, _query: UserRequest):
     ctx.logger.info(f"there", )
     user_address = sender
@@ -72,11 +72,66 @@ async def query_handler(ctx: Context, sender: str, _query: UserRequest):
         with open("state.json", "w") as f:
             json.dump(data, f, indent=4)
 
-        await ctx.send(PREDICTOR_AGENT_ADDRESS, Response(text="success"))
+        await ctx.send(ECONOMIST_AGENT_ADDRESS, Response(text="success"))
     except Exception:
         await ctx.send(sender, Response(text="fail"))
 
- 
+economist_agent = Agent(
+    name="Economist Agent",
+    seed="Economist Secret Phrase",
+    port=8001,
+    endpoint=["http://127.0.0.1:8001/submit"],
+)
+fund_agent_if_low(economist_agent.wallet.address())
+
+ECONOMIST_AGENT_ADDRESS = "agent1qdupymd2lvhh5rzsnatch6chprejg9d9jhff9xavqnesft2qyndjv2qudce"
+
+@economist_agent.on_event("startup")
+async def startup(ctx: Context):
+    ctx.logger.info(f"Starting up {economist_agent.name}")
+    ctx.logger.info(f"With address: {economist_agent.address}")
+    ctx.logger.info(f"And wallet address: {economist_agent.wallet.address()}")
+
+@economist_agent.on_query(model=Response)
+async def query_handler(ctx: Context, sender: str, message: Response):
+    ctx.logger.info(f"Economist agent received query from {sender}")
+
+    try:
+        # Read location data from the message or state file
+        with open("state.json", "r") as f:
+            state_data = json.load(f)
+
+        location = state_data.get("location", "unknown")
+
+        economist_data_list = get_economist_data(location)
+        if not economist_data_list or len(economist_data_list) < 7:
+            raise ValueError("Incomplete data returned from get_economist_data")
+
+        # Compile data into a response JSON
+        economist_data = {
+            "location": economist_data_list[0],
+            "vegetation_level": economist_data_list[1],
+            "average_salary": economist_data_list[2],
+            "food_price_percentage": economist_data_list[3],
+            "migration_patterns": economist_data_list[4],
+            "economic_diversity": economist_data_list[5],
+            "graduation_rate": economist_data_list[6]
+        }
+
+        ctx.logger.info(f"Compiled economist data: {economist_data}")
+
+        # Save economist data to a JSON file (optional)
+        with open("economist_data.json", "w") as f:
+            json.dump(economist_data, f, indent=4)  
+
+        # Send response back to the sender
+        await ctx.send(PREDICTOR_AGENT_ADDRESS, Response(text="success"))
+
+    except Exception as e:
+        # Handle errors and send a failure response
+        ctx.logger.error(f"Error generating economist data: {e}")
+        await ctx.send(sender, Response(text="An error occurred while generating economist data."))
+
 predictor_agent = Agent(
     name="Predictor Agent",
     seed="Predictor Secret Phrase",
@@ -131,16 +186,18 @@ async def query_handler(ctx: Context, sender: str, message: Response):
             json.dump(prediction_json, f, indent=4)
 
         # Send a success response back
-        await ctx.send(sender, Response(text="Prediction JSON generated successfully."))
+        ctx.send("agent1qfyv0rdcq6qzsa9rylulryuzaxj3xc6sdp8xfl8wdh97fdxmpm027qyyedu", Response(text="success"))
 
     except Exception as e:
         # Log any errors and send a failure response
         ctx.logger.error(f"Error generating prediction JSON: {e}")
         await ctx.send(sender, Response(text="An error occurred while generating the prediction JSON."))
 
+
 bureau = Bureau(port=8001, endpoint=["http://127.0.0.1:8001/submit"])
-bureau.add(analyzer_agent)
+bureau.add(environmentalist_agent)
 bureau.add(predictor_agent)
+bureau.add(economist_agent)
 
 # Main execution block to run the agent.
 if __name__ == "__main__":

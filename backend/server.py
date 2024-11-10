@@ -1,6 +1,7 @@
  
 import json
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
 from uagents import Model
 from agent_class import UserRequest
 from uagents.query import query
@@ -79,4 +80,21 @@ async def make_agent_call(req: Request):
         return response
     except Exception as e:
         return {"status": "error", "message": "Unsuccessful agent call", "details": str(e)}
- 
+    
+@app.post("/endpoint2")
+async def get_file():
+    try:
+        with open('future-state.json', 'r') as file:
+            data = json.load(file)
+        return data
+    except Exception as e:
+        return {"status": "error", "message": "Unsuccessful agent call", "details": str(e)}
+    
+@app.post("/endpoint3")
+async def get_file():
+    try:
+        with open('economist_data.json', 'r') as file:
+            data = json.load(file)
+        return data
+    except Exception as e:
+        return {"status": "error", "message": "Unsuccessful agent call", "details": str(e)}
