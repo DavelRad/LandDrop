@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import json
 from api.ai import talk_to_chatbot
+from api.location import get_address_from_coords
 from instructions import DROUGHT_RISK_PERCENTAGE_PROMPT, LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT, DROUGHT_RISK_PERCENTAGE_PROMPT,CHATBOT_INSTRUCTIONS, RISK_SUMMARY_PROMPT, SOIL_DATA_PREDICTOR_INSTRUCTION, LAND_RISK_PREDICTOR_PROMPT, DROUGHT_RISK_PREDICTOR_PROMPT, PREDICTION_RISK_SUMMARY_PROMPT
 import re
 
@@ -230,3 +231,92 @@ async def generate_summary_prediction(summary, soil_data, land_percentage, droug
     cleaned_response = re.sub(r'^```json|```$', '', response.strip())
     
     return cleaned_response
+
+def get_vegetation_level(location: str):
+    try:
+
+        # Prepare messages for the chatbot
+        messages = [
+            {
+                "role": "system",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "You are an vegetation level expert that helps the user find the vegetation level based on a city, state, and country. The user will input the city, state, and country. Only send back the vegetation level as a number (between 0 and 100) and nothing else."
+                    }
+                ]
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": f"{location}"
+                    }
+                ]
+            }
+        ]
+
+        # Communicate with the chatbot to get the vegetation level
+        return talk_to_chatbot(messages)
+    except Exception as e:
+        raise SystemExit(f"Failed to make the request. Error: {e}")
+    
+def get_average_salary(location: str):
+    try:
+
+        # Prepare messages for the chatbot
+        messages = [
+            {
+                "role": "system",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "You are an average salary expert that helps the user find the average salary based on a city, state, and country. The user will input the city, state, and country. Only send back the average salary as a number and nothing else."
+                    }
+                ]
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": f"{location}"
+                    }
+                ]
+            }
+        ]
+
+        # Communicate with the chatbot to get the average salary
+        return talk_to_chatbot(messages)
+    except Exception as e:
+        raise SystemExit(f"Failed to make the request. Error: {e}")
+
+def get_food_price_percentage(location: str):
+    try:
+        # Prepare messages for the chatbot
+        messages = [
+            {
+                "role": "system",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "You are an food price evaluator expert that helps the user find the average grocery price as a percentage of the national average based on a city, state, and country. The user will input the city, state, and country. Only send back the grocery price percentage (e.g., 115 for 115%) as a number and nothing else."
+                    }
+                ]
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": f"{location}"
+                    }
+                ]
+            }
+        ]
+
+        # Communicate with the chatbot to get the food price percentage
+        return talk_to_chatbot(messages)
+    except Exception as e:
+        raise SystemExit(f"Failed to make the request. Error: {e}")

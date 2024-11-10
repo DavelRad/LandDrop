@@ -70,4 +70,3 @@ def get_population_from_coords(lat: float, lon: float):
         return talk_to_chatbot(messages)
     except Exception as e:
         raise SystemExit(f"Failed to make the request. Error: {e}")
-    

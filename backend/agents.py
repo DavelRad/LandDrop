@@ -3,7 +3,7 @@ import json
 from dotenv import load_dotenv
 from uagents import Agent, Context, Model, Bureau
 from agent_class import UserRequest, Response
-from agent_funcs import drought_risk_percentage, land_degradation_risk_percentage, chatbot_query, risk_summary, generate_soil_data_predictions, predict_land_percentage, predict_drought_percentage, generate_summary_prediction
+from agent_funcs import drought_risk_percentage, get_average_salary, get_food_price_percentage, get_vegetation_level, land_degradation_risk_percentage, chatbot_query, risk_summary, generate_soil_data_predictions, predict_land_percentage, predict_drought_percentage, generate_summary_prediction
 from api.location import get_address_from_coords, get_population_from_coords, get_poverty_from_coords 
 from api.weather import get_soil_data
 from agent_funcs import drought_risk_percentage, land_degradation_risk_percentage, chatbot_query, risk_summary
@@ -84,7 +84,7 @@ economist_agent = Agent(
 )
 fund_agent_if_low(economist_agent.wallet.address())
 
-ECONOMIST_AGENT_ADDRESS = "agent1qwxe5ktzqqjk8g48nj3h3mhz3gg43wte37ejj8vtncs99sm6yyxsy2p0g0k"
+ECONOMIST_AGENT_ADDRESS = "agent1qdupymd2lvhh5rzsnatch6chprejg9d9jhff9xavqnesft2qyndjv2qudce"
 
 @economist_agent.on_event("startup")
 async def startup(ctx: Context):
@@ -95,8 +95,48 @@ async def startup(ctx: Context):
 @economist_agent.on_query(model=Response)
 async def query_handler(ctx: Context, sender: str, message: Response):
     ctx.logger.info(f"Economist agent received query from {sender}")
-    
- 
+
+    try:
+        # Read location data from the message or state file
+        with open("state.json", "r") as f:
+            state_data = json.load(f)
+
+        location = state_data.get("location", "unknown")
+
+        # Fetch data for migration patterns, economic diversity, and education level
+        # migration_patterns = get_migration_patterns(location)
+        # economic_diversity = get_economic_diversity(location)
+        # education_level = get_education_level(location)
+        vegetation_level = get_vegetation_level(location)
+        average_salary = get_average_salary(location)
+        food_price_percentage = get_food_price_percentage(location)
+
+        # Compile data into a response JSON
+        economist_data = {
+            "location": location,
+            # "migration_patterns": migration_patterns,
+            # "economic_diversity": economic_diversity,
+            # "education_level": education_level
+            "vegetation_level": vegetation_level,
+            "average_salary": average_salary,
+            "food_price_percentage": food_price_percentage
+        }
+
+        ctx.logger.info(f"Compiled economist data: {economist_data}")
+
+        # Save economist data to a JSON file (optional)
+        with open("economist_data.json", "w") as f:
+            json.dump(economist_data, f, indent=4)  
+
+        # Send response back to the sender
+        await ctx.send(PREDICTOR_AGENT_ADDRESS, Response(text="success"))
+
+    except Exception as e:
+        # Handle errors and send a failure response
+        ctx.logger.error(f"Error generating economist data: {e}")
+        await ctx.send(sender, Response(text="An error occurred while generating economist data."))
+
+
 predictor_agent = Agent(
     name="Predictor Agent",
     seed="Predictor Secret Phrase",
