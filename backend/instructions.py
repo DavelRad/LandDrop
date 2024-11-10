@@ -16,19 +16,19 @@ Respond with only the summary, without any extraneous text or explanations outsi
 """
 
 LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT = """
-Based on the following environmental data, calculate the percentage risk of land degradation specifically for EACH soil object throughout the dates. Assess factors such as soil moisture, soil temperature, precipitation, wind speed, humidity, and evapotranspiration to determine the level of risk.
+Based on the following environmental data, calculate the percentage risk of land degradation specifically for 9 soil object throughout the dates. Assess factors such as soil moisture, soil temperature, precipitation, wind speed, humidity, and evapotranspiration to determine the level of risk.
 
 Respond with only a list of single number between 10 and 90 seperated with commas, indicating the risk percentage out of 100, without any additional text or explanation.
 
-For example, answer with "45,60,30,65,20,30,43,59" for eight soil objects, without the quotes.
+For example, answer with "45,60,30,65,20,30,43,59,65" for 9 soil objects, without the quotes.
 """
 
 DROUGHT_RISK_PERCENTAGE_PROMPT = """
-Based on the following environmental data, calculate the percentage risk of degradation specifically for EACH soil object throughout the dates. Assess factors such as soil moisture, soil temperature, precipitation, wind speed, humidity, and evapotranspiration to determine the level of risk.
+Based on the following environmental data, calculate the percentage risk of degradation specifically for 9 soil object throughout the dates. Assess factors such as soil moisture, soil temperature, precipitation, wind speed, humidity, and evapotranspiration to determine the level of risk.
 
 Respond with only a list of single number between 10 and 90 seperated with commas, indicating the risk percentage out of 100, without any additional text or explanation.
 
-For example, answer with "45,60,30,65,20,30,43,59" for eight soil objects, without the quotes.
+For example, answer with "45,60,30,65,20,30,43,59,65" for 9 soil objects, without the quotes.
 """
 
 CHATBOT_INSTRUCTIONS = """

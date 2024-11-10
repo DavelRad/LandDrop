@@ -60,8 +60,8 @@ def chatbot_query(query, location, summary, soil_data, population, poverty, land
     Summary: {summary}\n
     Population: {population}\n
     Poverty: {poverty}\n"
-    Land Degradation Risk: {land_percentage}\n
-    Drought Risk: {drought_percentage}\n
+    Land Degradation Risk throughout the week: {land_percentage}\n
+    Drought Risk throughout the week: {drought_percentage}\n
     """
 
     messages = [
