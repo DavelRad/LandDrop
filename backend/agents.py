@@ -13,24 +13,24 @@ from uagents.setup import fund_agent_if_low
 load_dotenv()
  
 # Initialize the agent with its configuration.
-analyzer_agent = Agent(
+environmentalist_agent = Agent(
     name="Risk Analyzer Agent",
     seed="Risk Analyzer Secret Phrase",
     port=8001,
     endpoint=["http://127.0.0.1:8001/submit"],
 )
 
-fund_agent_if_low(analyzer_agent.wallet.address())
+fund_agent_if_low(environmentalist_agent.wallet.address())
 
  
-@analyzer_agent.on_event("startup")
+@environmentalist_agent.on_event("startup")
 async def startup(ctx: Context):
-    ctx.logger.info(f"Starting up {analyzer_agent.name}")
-    ctx.logger.info(f"With address: {analyzer_agent.address}")
-    ctx.logger.info(f"And wallet address: {analyzer_agent.wallet.address()}")
+    ctx.logger.info(f"Starting up {environmentalist_agent.name}")
+    ctx.logger.info(f"With address: {environmentalist_agent.address}")
+    ctx.logger.info(f"And wallet address: {environmentalist_agent.wallet.address()}")
  
 # Decorator to handle incoming queries.
-@analyzer_agent.on_query(model=UserRequest, replies={Response})
+@environmentalist_agent.on_query(model=UserRequest, replies={Response})
 async def query_handler(ctx: Context, sender: str, _query: UserRequest):
     ctx.logger.info(f"there", )
     user_address = sender
@@ -72,10 +72,30 @@ async def query_handler(ctx: Context, sender: str, _query: UserRequest):
         with open("state.json", "w") as f:
             json.dump(data, f, indent=4)
 
-        await ctx.send(PREDICTOR_AGENT_ADDRESS, Response(text="success"))
+        await ctx.send(ECONOMIST_AGENT_ADDRESS, Response(text="success"))
     except Exception:
         await ctx.send(sender, Response(text="fail"))
 
+economist_agent = Agent(
+    name="Economist Agent",
+    seed="Economist Secret Phrase",
+    port=8001,
+    endpoint=["http://127.0.0.1:8001/submit"],
+)
+fund_agent_if_low(economist_agent.wallet.address())
+
+ECONOMIST_AGENT_ADDRESS = "agent1qwxe5ktzqqjk8g48nj3h3mhz3gg43wte37ejj8vtncs99sm6yyxsy2p0g0k"
+
+@economist_agent.on_event("startup")
+async def startup(ctx: Context):
+    ctx.logger.info(f"Starting up {economist_agent.name}")
+    ctx.logger.info(f"With address: {economist_agent.address}")
+    ctx.logger.info(f"And wallet address: {economist_agent.wallet.address()}")
+
+@economist_agent.on_query(model=Response)
+async def query_handler(ctx: Context, sender: str, message: Response):
+    ctx.logger.info(f"Economist agent received query from {sender}")
+    
  
 predictor_agent = Agent(
     name="Predictor Agent",
@@ -138,9 +158,11 @@ async def query_handler(ctx: Context, sender: str, message: Response):
         ctx.logger.error(f"Error generating prediction JSON: {e}")
         await ctx.send(sender, Response(text="An error occurred while generating the prediction JSON."))
 
+
 bureau = Bureau(port=8001, endpoint=["http://127.0.0.1:8001/submit"])
-bureau.add(analyzer_agent)
+bureau.add(environmentalist_agent)
 bureau.add(predictor_agent)
+bureau.add(economist_agent)
 
 # Main execution block to run the agent.
 if __name__ == "__main__":
