@@ -2,9 +2,9 @@
 from dotenv import load_dotenv
 from uagents import Agent, Context, Model, Bureau
 from agent_class import UserRequest, Response
-from agent_funcs import risk_summary, risk_percentage
+from agent_funcs import risk_summary, risk_percentage, drought_risk
 from api.weather import get_soil_data
-from api.location import get_address_from_coords
+from api.location import get_address_from_coords, get_population_from_coords
 from uagents.setup import fund_agent_if_low
 import json
 
@@ -37,25 +37,24 @@ async def query_handler(ctx: Context, sender: str, _query: UserRequest):
 
     try:
         response_land_data = get_soil_data(_query.lat, _query.lon)
-        summary = risk_summary(response_land_data)
-        percentage = risk_percentage(response_land_data, summary)
         coords_city = get_address_from_coords(_query.lat, _query.lon)   
+        population = get_population_from_coords(_query.lat, _query.lon)
 
         ctx.logger.info(f"response_land_data: {response_land_data}")
-        ctx.logger.info(f"summary: {summary}")
-        ctx.logger.info(f"percentage: {percentage}")
 
         data = {} 
         data["location"] = { "lat": _query.lat, "lon": _query.lon }
-        data["response_land_data"] = response_land_data["data"]
-        data["summary"] = summary
-        data["risk_percentage"] = percentage
+        data["soil_data"] = response_land_data["data"]
         data["city"] = coords_city
+        data["population"] = population
+        drought_risk_data = drought_risk(data)
+        data["drought_risk"] = drought_risk_data["drought_risk"]
+        data["drought_risk_summary"] = drought_risk_data["drought_risk_summary"]
 
         with open("state.json", "w") as f:
             json.dump(data, f, indent=4)
 
-        await ctx.send(sender, Response(text="success", land_data=response_land_data, summary=summary, risk_percentage=int(percentage)))
+        await ctx.send(sender, Response(text="success"))
     except Exception:
         await ctx.send(sender, Response(text="fail"))
 

@@ -20,3 +20,13 @@ Based on the following environmental data, calculate the percentage risk of land
 
 Respond with only a single number between 10 and 90, indicating the risk percentage out of 100, without any additional text or explanation.
 """
+
+# Define the prompt instructions as a constant
+DROUGHT_RISK_INSTRUCTIONS = """
+Generate a JSON object that provides a drought risk assessment based off the JSON file the user will send. The object should have two key-value pairs: 
+- `drought_risk`: a string that categorizes the level of drought risk as either 'LOW', 'MEDIUM', or 'HIGH'. 
+- `drought_risk_summary`: a brief summary describing the current drought conditions and potential impacts, written in natural language. 
+
+The response should be structured in JSON format, like this example:
+{ "drought_risk": "LOW", "drought_risk_summary": "Recent rainfall has reduced drought conditions, with minimal impact expected on local agriculture." }
+"""

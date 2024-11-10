@@ -35,7 +35,9 @@ async def make_agent_call(req: Request):
     #print(model)
     try:
         res = await agent_query(model)
-        return f"successful call - agent response: {res}"
+        with open('state.json', 'r') as file:
+            data = json.load(file)
+        return data
     except Exception:
         return "unsuccessful agent call"
  
