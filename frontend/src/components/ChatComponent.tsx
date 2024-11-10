@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { Send } from "lucide-react"
 import { useState } from "react"
+import Markdown from 'react-markdown'
 
 interface Message {
     content: string
@@ -96,7 +97,7 @@ export default function Component() {
                                     : 'bg-white border rounded-bl-none'
                             )}
                         >
-                            {message.content}
+                            <Markdown>{message.content}</Markdown>
                         </div>
                     </div>
                 ))}
