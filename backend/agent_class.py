@@ -1,12 +1,11 @@
 from uagents import Model
 from typing import Any, Optional
 
-class Request(Model):
-    query: str
+class UserRequest(Model):
+    query: str = None
     lat: float 
     lon: float
-    user: str = None
-
+ 
 class Response(Model):
     text: str
     land_data: Optional[dict] = None

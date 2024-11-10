@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv() 
 
-print(weather.get_soil_data(34.035, -117.846191), '\n\n')
+#print(weather.get_soil_data(34.035, -117.846191), '\n\n')
 
 
 messages = [
@@ -12,7 +12,7 @@ messages = [
         "content": [
             {
                 "type": "text",
-                "text": "You are an AI assistant that helps people find information."
+                "text": "Hi how are you"
             }
         ]
     }

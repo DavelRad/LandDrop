@@ -2,6 +2,7 @@
 import json
 from fastapi import FastAPI, Request
 from uagents import Model
+from agent_class import UserRequest
 from uagents.query import query
 from uagents.envelope import Envelope
  
@@ -9,9 +10,13 @@ AGENT_ADDRESS = "agent1qfyv0rdcq6qzsa9rylulryuzaxj3xc6sdp8xfl8wdh97fdxmpm027qyye
  
 class TestRequest(Model):
     message: str
+    lat: float
+    lon: float
+    user: str = None
  
 async def agent_query(req):
     response = await query(destination=AGENT_ADDRESS, message=req, timeout=15)
+    print(req)
     if isinstance(response, Envelope):
         data = json.loads(response.decode_payload())
         return data["text"]
@@ -26,7 +31,8 @@ def read_root():
  
 @app.post("/endpoint")
 async def make_agent_call(req: Request):
-    model = TestRequest.parse_obj(await req.json())
+    model = UserRequest.parse_obj(await req.json())
+    #print(model)
     try:
         res = await agent_query(model)
         return f"successful call - agent response: {res}"
