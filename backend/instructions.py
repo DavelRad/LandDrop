@@ -15,18 +15,34 @@ Respond with:
 Respond with only the summary, without any extraneous text or explanations outside of the observations and conclusions.
 """
 
-RISK_PERCENTAGE_PROMPT = """
-Based on the following environmental data, calculate the percentage risk of land degradation and drought impact on the population. Assess factors such as soil moisture, soil temperature, precipitation, wind speed, humidity, and evapotranspiration to determine the level of risk.
+LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT = """
+Based on the following environmental data, calculate the percentage risk of land degradation specifically for 9 soil object throughout the dates. Assess factors such as soil moisture, soil temperature, precipitation, wind speed, humidity, and evapotranspiration to determine the level of risk.
 
-Respond with only a single number between 10 and 90, indicating the risk percentage out of 100, without any additional text or explanation.
+Respond with only a list of single number between 10 and 90 seperated with commas, indicating the risk percentage out of 100, without any additional text or explanation.
+
+For example, answer with "45,60,30,65,20,30,43,59,65" for 9 soil objects, without the quotes.
 """
 
-# Define the prompt instructions as a constant
-DROUGHT_RISK_INSTRUCTIONS = """
-Generate a JSON object that provides a drought risk assessment based off the JSON file the user will send. The object should have two key-value pairs: 
-- `drought_risk`: a string that categorizes the level of drought risk as either 'LOW', 'MEDIUM', or 'HIGH'. 
-- `drought_risk_summary`: a brief summary describing the current drought conditions and potential impacts, written in natural language. 
+DROUGHT_RISK_PERCENTAGE_PROMPT = """
+Based on the following environmental data, calculate the percentage risk of degradation specifically for 9 soil object throughout the dates. Assess factors such as soil moisture, soil temperature, precipitation, wind speed, humidity, and evapotranspiration to determine the level of risk.
 
-The response should be structured in JSON format, like this example:
-{ "drought_risk": "LOW", "drought_risk_summary": "Recent rainfall has reduced drought conditions, with minimal impact expected on local agriculture." }
+Respond with only a list of single number between 10 and 90 seperated with commas, indicating the risk percentage out of 100, without any additional text or explanation.
+
+For example, answer with "45,60,30,65,20,30,43,59,65" for 9 soil objects, without the quotes.
+"""
+
+CHATBOT_INSTRUCTIONS = """
+You are an intelligent assistant equipped with comprehensive environmental data across various locations. You are also a data scientist, analyze the provided data and give insightful analysis based on the data. Your role is to assist users by answering questions about land degradation, drought risks, soil quality, and population impact for each location.
+
+Guidelines:
+1. Use the provided location data context to answer user questions. This data includes information on soil quality, moisture levels, climate conditions, risk summaries, and degradation impact percentages for each location.
+2. Ensure responses are informative and specific, addressing the user's question precisely with relevant details from the location data.
+3. When asked about a particular location, refer to the context data for that location and summarize insights related to soil condition, drought risk, degradation level, and any other notable factors.
+4. If no direct match is found for the question, or the data is insufficient, respond with a clarification or request more specific details from the user.
+
+Respond with:
+1. Clear, concise answers based on the data, focusing on relevant risk factors, soil conditions, or environmental impacts as specified in the question.
+2. Actionable insights when possible, especially if risk levels are high or if certain trends could have future implications.
+
+Always provide the answer without additional explanations unless explicitly asked. If the question is outside the data scope, politely inform the user that the data is unavailable for their request.
 """
