@@ -3,8 +3,10 @@ import json
 from dotenv import load_dotenv
 from uagents import Agent, Context, Model, Bureau
 from agent_class import UserRequest, Response
+from agent_funcs import drought_risk_percentage, land_degradation_risk_percentage, chatbot_query, risk_summary, generate_soil_data_predictions, predict_land_percentage, predict_drought_percentage, generate_summary_prediction
+from api.location import get_address_from_coords, get_population_from_coords, get_poverty_from_coords 
+from api.weather import get_soil_data
 from agent_funcs import drought_risk_percentage, land_degradation_risk_percentage, chatbot_query, risk_summary
-from api.location import get_address_from_coords, get_population_from_coords, get_poverty_from_coords
 from api.weather import get_soil_data
 from uagents.setup import fund_agent_if_low
 
@@ -70,7 +72,7 @@ async def query_handler(ctx: Context, sender: str, _query: UserRequest):
         with open("state.json", "w") as f:
             json.dump(data, f, indent=4)
 
-        await ctx.send(sender, Response(text="success"))
+        await ctx.send(PREDICTOR_AGENT_ADDRESS, Response(text="success"))
     except Exception:
         await ctx.send(sender, Response(text="fail"))
 
@@ -82,8 +84,63 @@ predictor_agent = Agent(
     endpoint=["http://127.0.0.1:8001/submit"],
 )
 
+fund_agent_if_low(predictor_agent.wallet.address())
+
+PREDICTOR_AGENT_ADDRESS = "agent1qwxe5ktzqqjk8g48nj3h3mhz3gg43wte37ejj8vtncs99sm6yyxsy2p0g0k"
+
+@predictor_agent.on_event("startup")
+async def startup(ctx: Context):
+    ctx.logger.info(f"Starting up {predictor_agent.name}")
+    ctx.logger.info(f"With address: {predictor_agent.address}")
+    ctx.logger.info(f"And wallet address: {predictor_agent.wallet.address()}")
+
+@predictor_agent.on_query(model=Response)
+async def query_handler(ctx: Context, sender: str, message: Response):
+    ctx.logger.info(f"Predictor agent received query from {sender}")
+    try:
+        # Read the state data
+        with open("state.json", "r") as f:
+            state_data = json.load(f)
+            
+        # Initialize prediction JSON with static values
+        prediction_json = {
+            "location": state_data["location"],
+            "population": state_data["population"],
+            "poverty": state_data["poverty"]
+        }
+
+        ctx.logger.info(f"Initialized prediction_json: {prediction_json}")
+        
+        # Generate predictions for each section
+        prediction_json["soil_data"] = await generate_soil_data_predictions(state_data["soil_data"])
+        ctx.logger.info(f"Generated soil_data predictions: {prediction_json['soil_data']}")
+        prediction_json["land_percentage"] = predict_land_percentage(state_data["land_percentage"])
+        ctx.logger.info(f"Generated land_percentage predictions: {prediction_json['land_percentage']}")
+        prediction_json["drought_percentage"] = predict_drought_percentage(state_data["drought_percentage"])
+        ctx.logger.info(f"Generated drought_percentage predictions: {prediction_json['drought_percentage']}")
+        prediction_json["summary"] = await generate_summary_prediction(
+            state_data["summary"],
+            prediction_json["soil_data"],
+            prediction_json["land_percentage"],
+            prediction_json["drought_percentage"]
+        )
+        ctx.logger.info(f"Generated summary prediction: {prediction_json['summary']}")
+
+        # Write the prediction JSON to future-state.json
+        with open("future-state.json", "w") as f:
+            json.dump(prediction_json, f, indent=4)
+
+        # Send a success response back
+        await ctx.send(sender, Response(text="Prediction JSON generated successfully."))
+
+    except Exception as e:
+        # Log any errors and send a failure response
+        ctx.logger.error(f"Error generating prediction JSON: {e}")
+        await ctx.send(sender, Response(text="An error occurred while generating the prediction JSON."))
+
 bureau = Bureau(port=8001, endpoint=["http://127.0.0.1:8001/submit"])
 bureau.add(analyzer_agent)
+bureau.add(predictor_agent)
 
 # Main execution block to run the agent.
 if __name__ == "__main__":
