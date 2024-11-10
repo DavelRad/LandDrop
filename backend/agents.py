@@ -49,7 +49,7 @@ async def query_handler(ctx: Context, sender: str, _query: UserRequest):
         summary = risk_summary(data)
         data["land_percentage"] = land_degradation_risk_percentage(response_land_data)
         data["drought_percentage"] = drought_risk_percentage(response_land_data)
-    
+        data["summary"] = summary
 
         ctx.logger.info(f"population: {population}")
         ctx.logger.info(f"poverty: {poverty}")

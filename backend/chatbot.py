@@ -2,7 +2,7 @@
 from dotenv import load_dotenv
 from uagents import Agent, Context, Model, Bureau
 from agent_class import UserRequest, Response
-from agent_funcs import risk_summary, risk_percentage
+from agent_funcs import risk_summary
 from api.functions import get_soil_data
 from uagents.setup import fund_agent_if_low
 import json
@@ -20,7 +20,7 @@ chatbot_agent = Agent(
 fund_agent_if_low(chatbot_agent.wallet.address())
 
 def load_json_data():
-    with open("data.json", "r") as file:
+    with open("state.json", "r") as file:
         data = json.load(file)
     return data
 
@@ -30,8 +30,7 @@ async def startup(ctx: Context):
     ctx.logger.info(f"Starting up {chatbot_agent.name}")
     ctx.logger.info(f"With address: {chatbot_agent.address}")
     ctx.logger.info(f"And wallet address: {chatbot_agent.wallet.address()}")
- 
-# Decorator to handle incoming queries.
+
 @chatbot_agent.on_query(model=UserRequest, replies={Response})
 async def query_handler(ctx: Context, sender: str, _query: UserRequest):
     user_address = sender
@@ -39,36 +38,40 @@ async def query_handler(ctx: Context, sender: str, _query: UserRequest):
     try:
         # Load data from JSON file
         data = load_json_data()
-        location_data = None
+        
+        if data:
+            # Extract data for response
+            summary = data.get("summary")
+            location = data.get("location")
+            soil_data = data.get("soil_data", [])
+            population = data.get("population")
+            poverty = data.get("poverty")
+            land_percentage = data.get("land_percentage")
+            drought_percentage = data.get("drought_percentage")
+            ctx.logger.info("here")
 
-        # Find matching data based on location if provided
-        for entry in data.get("location_data", []):
-            if entry.get("location") == _query.query:  # Assuming the query contains the location name
-                location_data = entry
-                break
-
-        if location_data:
-            land_data = location_data.get("land_data")
-            summary = location_data.get("summary")
-            risk_percentage = location_data.get("risk_percentage")
-            location = location_data.get("location")
-            city = location_data.get("city")
-
-        response = chatbot_query(query, land_data, summary, risk_percentage, location, city)
-        if response:
-            await ctx.send(
-                sender,
-                Response(
-                    text="success",
-                )
+            # Construct response based on the extracted data
+            response = chatbot_query(
+                summary=summary,
+                location=location,
+                query=query,
+                soil_data=soil_data,
+                population=population,
+                poverty=poverty,
+                land_percentage=land_percentage,
+                drought_percentage=drought_percentage
             )
+            ctx.logger.info(f"response {response}")
+            
+            with open("response.json", "w") as f:
+                json.dump(response, f, indent=4)
         else:
-            # If no data is found, send a fail response
-            await ctx.send(sender, Response(text="Location not found in data."))
+            response = "Please select a location within a city."
+            with open("response.json", "w") as f:
+                json.dump(response, f, indent=4)
+        await ctx.send(sender, Response(text="success"))
     except Exception:
         await ctx.send(sender, Response(text="fail"))
 
-# Main execution block to run the agent.
 if __name__ == "__main__":
     chatbot_agent.run()
-    
