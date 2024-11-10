@@ -57,11 +57,15 @@ export default function Map() {
     const [location, setLocation] = useState<Location | null>(null)
     const [soilData, setSoilData] = useState<SoilData | null>(null)
     const [loadingStatus, setLoadingStatus] = useState<boolean>(false);
-
+    const [selectedDate, setSelectedDate] = useState<string>('')
+    const [dates, setDates] = useState<string[]>([])
+    const [soilDataArray, setSoilDataArray] = useState<SoilData[]>([]);
+    
 
     const fetchSoilData = async (lat: number, lon: number): Promise<SoilData | null> => {
         try {
             setLoadingStatus(true);
+            setSelectedDate('');
             const response = await fetch(`http://localhost:8000/endpoint`, {
                 method: 'POST',
                 headers: {
@@ -76,7 +80,9 @@ export default function Map() {
             }
 
             const data = await response.json()
-            return data.soil_data[0]
+            setDates(data.soil_data.map((soilData: SoilData) => soilData.valid_date))
+            setSoilDataArray(data.soil_data);
+            return !selectedDate ? data.soil_data[0] : data.soil_data.find((soilData: SoilData) => soilData.valid_date === selectedDate)
         } catch (error) {
             console.error('Error fetching soil data:', error)
             return null
@@ -84,6 +90,14 @@ export default function Map() {
             setLoadingStatus(false);
         }
     }
+
+    useEffect(() => {
+        if (soilDataArray && soilDataArray.length > 0) {
+            const selectedSoilData = soilDataArray.find((data: SoilData) => data.valid_date === selectedDate);
+            setSoilData(selectedSoilData || soilDataArray[0]);
+            console.log(selectedDate);
+        }
+    }, [selectedDate, soilData]);
 
     useEffect(() => {
         if (map.current || !mapContainer.current) return
@@ -146,7 +160,7 @@ export default function Map() {
                         transition={{ duration: 0.5 }}
                         className="absolute top-0 left-0 right-0 z-10 m-4 max-w-48"
                     >
-                        <Sidebar theLocation={location} soilData={soilData} />
+                        <Sidebar theLocation={location} soilData={soilData} dates={dates} setDateState={setSelectedDate} />
                     </motion.div>
                 )}
             </AnimatePresence>
