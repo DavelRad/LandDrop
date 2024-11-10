@@ -6,7 +6,7 @@ from agent_class import UserRequest
 from uagents.query import query
 from uagents.envelope import Envelope
 from fastapi.middleware.cors import CORSMiddleware
-
+import os
 
  
 AGENT_ADDRESS = "agent1qfyv0rdcq6qzsa9rylulryuzaxj3xc6sdp8xfl8wdh97fdxmpm027qyyedu"
@@ -57,10 +57,14 @@ def read_root():
 @app.post("/endpoint")
 async def make_agent_call(req: Request):
     model = UserRequest.parse_obj(await req.json())
-    #print(model)
     try:
+
+        if os.path.exists('chat.json'):
+            os.remove('chat.json')
         res = await agent_query(model)
-        return f"successful call - agent response: {res}"
+        with open('state.json', 'r') as file:
+            data = json.load(file)
+        return data
     except Exception:
         return "unsuccessful agent call"
  
@@ -69,10 +73,10 @@ async def make_agent_call(req: Request):
     model = UserRequest.parse_obj(await req.json())
     try:
         res = await chatbot_agent_query(model)
-        if res:
-            return {"status": "success", "data": res}
-        else:
-            return {"status": "fail", "message": "No data found for the location."}
+        with open('chat.json', 'r') as file:
+            data = json.load(file)
+        response = data[-1]["response"]
+        return response
     except Exception as e:
         return {"status": "error", "message": "Unsuccessful agent call", "details": str(e)}
  

@@ -4,7 +4,10 @@ from dotenv import load_dotenv
 from uagents import Agent, Context, Model, Bureau
 from agent_class import UserRequest, Response
 from agent_funcs import drought_risk_percentage, land_degradation_risk_percentage, chatbot_query, risk_summary, generate_soil_data_predictions, predict_land_percentage, predict_drought_percentage, generate_summary_prediction
-from api.functions import get_address_from_coords, get_soil_data, get_population_data, get_poverty_data 
+from api.location import get_address_from_coords, get_population_from_coords, get_poverty_from_coords 
+from api.weather import get_soil_data
+from agent_funcs import drought_risk_percentage, land_degradation_risk_percentage, chatbot_query, risk_summary
+from api.weather import get_soil_data
 from uagents.setup import fund_agent_if_low
 
 load_dotenv()
@@ -37,8 +40,8 @@ async def query_handler(ctx: Context, sender: str, _query: UserRequest):
     try:
         response_land_data = get_soil_data(_query.lat, _query.lon)
         location = get_address_from_coords(_query.lat, _query.lon)   
-        population = get_population_data(_query.lat, _query.lon)
-        poverty = get_poverty_data(_query.lat, _query.lon)
+        population = get_population_from_coords(_query.lat, _query.lon)
+        poverty = get_poverty_from_coords(_query.lat, _query.lon)
 
         land_percentage_response = land_degradation_risk_percentage(response_land_data["data"])
         drought_percentage_response = drought_risk_percentage(response_land_data["data"])
@@ -142,4 +145,3 @@ bureau.add(predictor_agent)
 # Main execution block to run the agent.
 if __name__ == "__main__":
     bureau.run()
-    

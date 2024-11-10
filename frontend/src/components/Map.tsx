@@ -7,6 +7,7 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import Sidebar from '@/components/sidebar'
 import ChatComponent from '@/components/ChatComponent'
+import LoadSideBar from '@/components/LoadSideBar'
 
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ""
@@ -55,10 +56,17 @@ export default function Map() {
     const markerRef = useRef<mapboxgl.Marker | null>(null)
     const [location, setLocation] = useState<Location | null>(null)
     const [soilData, setSoilData] = useState<SoilData | null>(null)
+    const [loadingStatus, setLoadingStatus] = useState<boolean>(false);
+    const [selectedDate, setSelectedDate] = useState<string>('')
+    const [dates, setDates] = useState<string[]>([])
+    const [soilDataArray, setSoilDataArray] = useState<SoilData[]>([]);
+    const [checkState, setCheckState] = useState<String>('');
 
 
     const fetchSoilData = async (lat: number, lon: number): Promise<SoilData | null> => {
         try {
+            setLoadingStatus(true);
+            setSelectedDate('');
             const response = await fetch(`http://localhost:8000/endpoint`, {
                 method: 'POST',
                 headers: {
@@ -73,12 +81,30 @@ export default function Map() {
             }
 
             const data = await response.json()
-            return data.soil_data[0]
+            setDates(data.soil_data.map((soilData: SoilData) => soilData.valid_date))
+            setSoilDataArray(data.soil_data);
+
+            setCheckState(data.soil_data);
+            return !selectedDate ? data.soil_data[data.soil_data.length - 1] : data.soil_data.find((soilData: SoilData) => soilData.valid_date === selectedDate)
         } catch (error) {
             console.error('Error fetching soil data:', error)
             return null
+        } finally {
+            setLoadingStatus(false);
         }
     }
+
+    useEffect(() => {
+        console.log("Soil data, ", checkState);
+    }, [checkState])
+
+    useEffect(() => {
+        if (soilDataArray && soilDataArray.length > 0) {
+            const selectedSoilData = soilDataArray.find((data: SoilData) => data.valid_date === selectedDate);
+            setSoilData(selectedSoilData || soilDataArray[soilDataArray.length - 1]);
+            console.log(selectedDate);
+        }
+    }, [selectedDate, soilData]);
 
     useEffect(() => {
         if (map.current || !mapContainer.current) return
@@ -86,7 +112,7 @@ export default function Map() {
 
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
-            style: style,
+            // style: style,
             center: [-74.5, 40],
             zoom: 9,
         })
@@ -120,7 +146,19 @@ export default function Map() {
     return (
         <div className="relative h-screen">
             <AnimatePresence>
-                {location && soilData && (
+                {loadingStatus && (
+                    <motion.div
+                        key="loading"
+                        initial={{ opacity: 0, y: -50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -50 }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute top-0 left-0 right-0 z-10 m-4 max-w-48"
+                    >
+                        <LoadSideBar />
+                    </motion.div>
+                )}
+                {!loadingStatus && location && soilData && (
                     <motion.div
                         key="sidebar"
                         initial={{ opacity: 0, y: -50 }}
@@ -129,7 +167,7 @@ export default function Map() {
                         transition={{ duration: 0.5 }}
                         className="absolute top-0 left-0 right-0 z-10 m-4 max-w-48"
                     >
-                        <Sidebar theLocation={location} soilData={soilData} />
+                        <Sidebar theLocation={location} soilData={soilData} dates={dates} setDateState={setSelectedDate} />
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -146,7 +184,9 @@ export default function Map() {
                         transition={{ duration: 0.5 }}
                         className="absolute bottom-2 right-4 z-20"
                     >
-                        <ChatComponent />
+                        {!loadingStatus &&
+                            <ChatComponent />
+                        }
                     </motion.div>
                 )}
             </AnimatePresence>
