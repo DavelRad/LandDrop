@@ -2,3 +2,4 @@
 __pycache__
 .DS_Store
 state.json
+future-state.json
