@@ -89,3 +89,12 @@ async def get_file():
         return data
     except Exception as e:
         return {"status": "error", "message": "Unsuccessful agent call", "details": str(e)}
+    
+@app.post("/endpoint3")
+async def get_file():
+    try:
+        with open('economist_data.json', 'r') as file:
+            data = json.load(file)
+        return data
+    except Exception as e:
+        return {"status": "error", "message": "Unsuccessful agent call", "details": str(e)}
