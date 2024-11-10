@@ -7,6 +7,7 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import Sidebar from '@/components/sidebar'
 import ChatComponent from '@/components/ChatComponent'
+import LoadSideBar from '@/components/LoadSideBar'
 
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ""
@@ -55,10 +56,12 @@ export default function Map() {
     const markerRef = useRef<mapboxgl.Marker | null>(null)
     const [location, setLocation] = useState<Location | null>(null)
     const [soilData, setSoilData] = useState<SoilData | null>(null)
+    const [loadingStatus, setLoadingStatus] = useState<boolean>(false);
 
 
     const fetchSoilData = async (lat: number, lon: number): Promise<SoilData | null> => {
         try {
+            setLoadingStatus(true);
             const response = await fetch(`http://localhost:8000/endpoint`, {
                 method: 'POST',
                 headers: {
@@ -77,6 +80,8 @@ export default function Map() {
         } catch (error) {
             console.error('Error fetching soil data:', error)
             return null
+        } finally {
+            setLoadingStatus(false);
         }
     }
 
@@ -120,7 +125,19 @@ export default function Map() {
     return (
         <div className="relative h-screen">
             <AnimatePresence>
-                {location && soilData && (
+                 {loadingStatus && (
+                    <motion.div
+                        key="loading"
+                        initial={{ opacity: 0, y: -50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -50 }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute top-0 left-0 right-0 z-10 m-4 max-w-48"
+                    >
+                        <LoadSideBar />
+                    </motion.div>
+                )}
+                {!loadingStatus && location && soilData && (
                     <motion.div
                         key="sidebar"
                         initial={{ opacity: 0, y: -50 }}
@@ -146,7 +163,9 @@ export default function Map() {
                         transition={{ duration: 0.5 }}
                         className="absolute bottom-2 right-4 z-20"
                     >
-                        <ChatComponent />
+                        { !loadingStatus && 
+                            <ChatComponent />
+                        }
                     </motion.div>
                 )}
             </AnimatePresence>
