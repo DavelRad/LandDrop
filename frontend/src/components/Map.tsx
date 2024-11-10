@@ -112,7 +112,7 @@ export default function Map() {
 
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
-            style: style,
+            // style: style,
             center: [-74.5, 40],
             zoom: 9,
         })

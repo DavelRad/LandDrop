@@ -69,13 +69,13 @@ export default function Component() {
     }
 
     return (
-        <Card className="w-full max-w-md mx-auto overflow-hidden border-0 shadow-lg">
+        <Card className="w-[350px] mx-auto overflow-hidden border-0 shadow-lg">
             <div className="p-4 bg-gradient-to-r from-[#4FC3F7] to-[#1E88E5]">
                 <div className="flex items-center gap-3">
-                    <Avatar className="w-8 h-8">
-                        <img src="/images/placeholder.png" alt="Farmer Brady" />
+                    <Avatar className="w-12 h-12 rounded-md">
+                        <img src="/images/placeholder.png" alt="fetch" />
                     </Avatar>
-                    <h2 className="text-lg font-semibold text-white">Brady</h2>
+                    <h2 className="text-xl font-semibold text-white relative translate-y-[4px] ">Fetch</h2>
                 </div>
             </div>
 
