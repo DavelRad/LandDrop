@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import json
 from api.ai import talk_to_chatbot
-from instructions import DROUGHT_RISK_PERCENTAGE_PROMPT, LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT, DROUGHT_RISK_PERCENTAGE_PROMPT,CHATBOT_INSTRUCTIONS, RISK_SUMMARY_PROMPT, SOIL_DATA_PREDICTOR_INSTRUCTION
+from instructions import DROUGHT_RISK_PERCENTAGE_PROMPT, LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT, DROUGHT_RISK_PERCENTAGE_PROMPT,CHATBOT_INSTRUCTIONS, RISK_SUMMARY_PROMPT, SOIL_DATA_PREDICTOR_INSTRUCTION, LAND_RISK_PREDICTOR_PROMPT, DROUGHT_RISK_PREDICTOR_PROMPT, PREDICTION_RISK_SUMMARY_PROMPT
 import re
 
 load_dotenv()
@@ -114,12 +114,13 @@ async def generate_soil_data_predictions(soil_data: list) -> list:
         }
     ]
     response = talk_to_chatbot(messages)
+    print(f"Raw LLM response: {response}")
     try:
         predicted_values_list = json.loads(response)  # Assuming LLM response is JSON-parsable
         
         # Create the future soil data based on parsed response
         future_soil_data = []
-        for day_index, predicted_values in enumerate(predicted_values_list):
+        for day_index, predicted_values in enumerate(predicted_values_list[:9]):
             predicted_day = {
                 "bulk_soil_density": predicted_values[0],
                 "evapotranspiration": predicted_values[1],
@@ -140,3 +141,91 @@ async def generate_soil_data_predictions(soil_data: list) -> list:
         # Handle any parsing issues here, possibly logging them or defaulting values
         print(f"Failed to parse LLM response: {response}")
         return []
+
+def predict_land_percentage(land_percentage: float) -> float:
+    """
+    Predict future land degradation percentages based on historical data.
+    """
+    messages = [
+        {
+            "role": "system",
+            "content": f"Here is your prompt: {LAND_RISK_PREDICTOR_PROMPT}"
+        },
+        {
+            "role": "user",
+            "content": f"This is the historical land percentage data: {land_percentage}"
+        }
+    ]
+
+    # Call the chatbot function
+    response = talk_to_chatbot(messages)
+
+    # Clean and parse the response
+    cleaned_response = re.sub(r'^```json|```$', '', response.strip())
+    try:
+        predicted_land_percentage = json.loads(cleaned_response)
+        return predicted_land_percentage
+
+    except json.JSONDecodeError:
+        print(f"Failed to parse LLM response for land percentage: {response}")
+        return []
+
+def predict_drought_percentage(drought_percentage: list) -> list:
+    """
+    Predict future drought percentages based on historical data.
+    """
+    messages = [
+        {
+            "role": "system",
+            "content": f"Here is your prompt: {DROUGHT_RISK_PREDICTOR_PROMPT}"
+        },
+        {
+            "role": "user",
+            "content": f"This is the historical drought percentage data: {drought_percentage}"
+        }
+    ]
+
+    # Call the chatbot function
+    response = talk_to_chatbot(messages)
+
+    # Clean and parse the response
+    cleaned_response = re.sub(r'^```json|```$', '', response.strip())
+    try:
+        predicted_drought_percentage = json.loads(cleaned_response)
+        return predicted_drought_percentage
+
+    except json.JSONDecodeError:
+        print(f"Failed to parse LLM response for drought percentage: {response}")
+        return []
+    
+async def generate_summary_prediction(summary, soil_data, land_percentage, drought_percentage):
+    """
+    Generate a summary prediction based on provided environmental data.
+    """
+    # Combine data into a context for the LLM
+    context = f"""
+    Current Summary: {summary}
+    Soil Data: {soil_data}
+    Land Degradation Risk Percentages: {land_percentage}
+    Drought Risk Percentages: {drought_percentage}
+    """
+
+    # Define messages to send to the LLM
+    messages = [
+        {
+            "role": "system",
+            "content": f"Here is your prompt: {PREDICTION_RISK_SUMMARY_PROMPT}"
+        },
+        {
+            "role": "user",
+            "content": f"This is the data you need to analyze: {context}"
+        }
+    ]
+
+    # Call the chatbot function
+    response = talk_to_chatbot(messages)
+
+    # Clean the response by removing any extraneous formatting
+    cleaned_response = re.sub(r'^```json|```$', '', response.strip())
+    
+    return cleaned_response
