@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import json
 from api.ai import talk_to_chatbot
-from instructions import DROUGHT_RISK_PERCENTAGE_PROMPT, LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT, DROUGHT_RISK_PERCENTAGE_PROMPT,CHATBOT_INSTRUCTIONS, RISK_SUMMARY_PROMPT, SOIL_DATA_PREDICTOR_INSTRUCTION, LAND_RISK_PREDICTOR_PROMPT, DROUGHT_RISK_PREDICTOR_PROMPT, PREDICTION_RISK_SUMMARY_PROMPT
+from instructions import DROUGHT_RISK_PERCENTAGE_PROMPT, LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT, DROUGHT_RISK_PERCENTAGE_PROMPT,CHATBOT_INSTRUCTIONS, RISK_SUMMARY_PROMPT, SOIL_DATA_PREDICTOR_INSTRUCTION, LAND_RISK_PREDICTOR_PROMPT, DROUGHT_RISK_PREDICTOR_PROMPT, PREDICTION_RISK_SUMMARY_PROMPT, MIGRATION_PATTERNS_PROMPT, AREA_TYPE_PROMPT, GRADUATION_RATE_PROMPT
 import re
 
 load_dotenv()
@@ -229,4 +229,73 @@ async def generate_summary_prediction(summary, soil_data, land_percentage, droug
     # Clean the response by removing any extraneous formatting
     cleaned_response = re.sub(r'^```json|```$', '', response.strip())
     
+    return cleaned_response
+
+def get_migration_patterns(location):
+    """
+    Retrieve migration patterns for a specified location.
+
+    Parameters:
+    - location (str): The region or location identifier for which to fetch migration data.
+
+    Returns:
+    - dict: A dictionary containing the destination regions and their corresponding migration volume percentages.
+    """
+
+    messages = [
+        {
+            "role": "system",
+            "content": MIGRATION_PATTERNS_PROMPT
+        },
+        {
+            "role": "user",
+            "content": f"The location for migration patterns analysis is: {location}."
+        }
+    ]
+
+    # Call the chatbot function to get migration patterns
+    response = talk_to_chatbot(messages)
+
+    # Clean up and format response if necessary
+    cleaned_response = re.sub(r'^```|```$', '', response.strip())
+    
+    return cleaned_response
+
+def get_area_type(location):
+    messages = [
+        {
+            "role": "system",
+            "content": AREA_TYPE_PROMPT
+        },
+        {
+            "role": "user",
+            "content": f"The location to classify is {location}."
+        }
+    ]
+
+    response = talk_to_chatbot(messages)
+    return response.strip()
+
+
+def get_graduation_rate(location):
+    """
+    Function to retrieve the graduation rate for a specified location.
+    """
+    # Define messages to send to the LLM
+    messages = [
+        {
+            "role": "system",
+            "content": GRADUATION_RATE_PROMPT
+        },
+        {
+            "role": "user",
+            "content": f"Please provide the graduation rate for the following location: {location}"
+        }
+    ]
+
+    # Call the chatbot function
+    response = talk_to_chatbot(messages)
+
+    # Clean the response, ensuring it only contains the percentage
+    cleaned_response = response.strip()
     return cleaned_response

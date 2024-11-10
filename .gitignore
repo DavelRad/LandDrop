@@ -4,3 +4,5 @@ __pycache__
 state.json
 future-state.json
 chat.json
+economist_data.json
+instructions.py
