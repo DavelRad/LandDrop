@@ -140,39 +140,3 @@ async def generate_soil_data_predictions(soil_data: list) -> list:
         # Handle any parsing issues here, possibly logging them or defaulting values
         print(f"Failed to parse LLM response: {response}")
         return []
-
-async def predict_land_percentage(land_data: list) -> list:
-    """
-    Predict future land percentage values.
-    """
-    return await talk_to_llm("Predict future land percentages based on historical data.", land_data)
-
-async def predict_drought_percentage(drought_data: list) -> list:
-    """
-    Predict future drought percentage values.
-    """
-    return await talk_to_llm("Predict future drought percentages based on historical data.", drought_data)
-
-async def generate_summary_prediction(summary: str) -> str:
-    """
-    Generate a summary for future predictions based on historical summary.
-    """
-    return await talk_to_llm("Generate a future summary prediction.", summary)
-
-
-async def talk_to_llm(prompt: str, data: Any) -> Any:
-    """
-    Query the LLM to get predictions based on a prompt and data.
-    """
-    messages = [
-        {
-            "role": "system",
-            "content": f"Here is the data for context: {data}"
-        },
-        {
-            "role": "user",
-            "content": prompt
-        }
-    ]
-    response = await ctx.llm_request(messages)
-    return response["text"]  # Adjust based on actual response format
