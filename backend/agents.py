@@ -3,7 +3,7 @@ import json
 from dotenv import load_dotenv
 from uagents import Agent, Context, Model, Bureau
 from agent_class import UserRequest, Response
-from agent_funcs import drought_risk_percentage, get_average_salary, get_food_price_percentage, get_vegetation_level, land_degradation_risk_percentage, chatbot_query, risk_summary, generate_soil_data_predictions, predict_land_percentage, predict_drought_percentage, generate_summary_prediction
+from agent_funcs import drought_risk_percentage, get_average_salary, get_food_price_percentage, get_vegetation_level, land_degradation_risk_percentage, chatbot_query, risk_summary, generate_soil_data_predictions, predict_land_percentage, predict_drought_percentage, generate_summary_prediction, get_migration_patterns, get_area_type, get_graduation_rate
 from api.location import get_address_from_coords, get_population_from_coords, get_poverty_from_coords 
 from api.weather import get_soil_data
 from agent_funcs import drought_risk_percentage, land_degradation_risk_percentage, chatbot_query, risk_summary
@@ -103,23 +103,22 @@ async def query_handler(ctx: Context, sender: str, message: Response):
 
         location = state_data.get("location", "unknown")
 
-        # Fetch data for migration patterns, economic diversity, and education level
-        # migration_patterns = get_migration_patterns(location)
-        # economic_diversity = get_economic_diversity(location)
-        # education_level = get_education_level(location)
         vegetation_level = get_vegetation_level(location)
         average_salary = get_average_salary(location)
         food_price_percentage = get_food_price_percentage(location)
+        migration_patterns = get_migration_patterns(location)
+        economic_diversity = get_area_type(location)
+        graduation_rate = get_graduation_rate(location)
 
         # Compile data into a response JSON
         economist_data = {
             "location": location,
-            # "migration_patterns": migration_patterns,
-            # "economic_diversity": economic_diversity,
-            # "education_level": education_level
             "vegetation_level": vegetation_level,
             "average_salary": average_salary,
-            "food_price_percentage": food_price_percentage
+            "food_price_percentage": food_price_percentage,
+            "migration_patterns": migration_patterns,
+            "economic_diversity": economic_diversity,
+            "graduation_rate": graduation_rate
         }
 
         ctx.logger.info(f"Compiled economist data: {economist_data}")
@@ -135,7 +134,6 @@ async def query_handler(ctx: Context, sender: str, message: Response):
         # Handle errors and send a failure response
         ctx.logger.error(f"Error generating economist data: {e}")
         await ctx.send(sender, Response(text="An error occurred while generating economist data."))
-
 
 predictor_agent = Agent(
     name="Predictor Agent",

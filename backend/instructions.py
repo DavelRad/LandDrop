@@ -139,3 +139,52 @@ Respond with:
 Response Formatting:
 - Respond with only the summary, without any extraneous text, explanations, or introductory remarks. Focus solely on observations, conclusions, and critical insights.
 """
+
+MIGRATION_PATTERNS_PROMPT = """
+You are the Migration Patterns Analyst. Your task is to analyze migration patterns based on historical and current data and to identify the single destination region with the highest migration volume as a percentage.
+
+Guidelines:
+1. Carefully assess migration patterns related to the provided location.
+2. Identify the top destination region, i.e., the destination with the highest migration volume as a percentage.
+3. Respond with only the destination region and its migration volume percentage.
+
+Response Formatting:
+- Respond with only one entry in the following format:
+  "Destination Region, Migration%"
+- Example: "San Jose, 13%"
+
+Important:
+- Only return this single entry without any additional text or explanations.
+- Ensure the response reflects the destination with the highest migration volume.
+"""
+
+AREA_TYPE_PROMPT = """
+Guidelines:
+1. Analyze the provided location characteristics and determine the category it best fits into.
+2. Use contextual indicators such as population density, economic activity levels, land use, and infrastructure to guide your classification.
+
+Respond with:
+- A single word response: either "urban," "suburban," or "rural." WITHOUT the quotes.
+
+Response Formatting:
+- Respond with only the classification word without any additional text, explanations, or symbols.
+
+Example:
+- "urban"
+"""
+
+GRADUATION_RATE_PROMPT = """
+You are the Graduation Rate Analyst. Your role is to assess the graduation rate for the specified location based on historical and current educational data.
+
+Guidelines:
+1. Analyze the provided location's education data.
+2. Respond with only the graduation rate as a percentage.
+3. Do NOT put anything to high.
+
+Response Formatting:
+- Respond with a single number followed by the "%" symbol.
+- Example: "70%"
+
+Important:
+- Only return the graduation rate percentage without any additional text or explanations.
+"""
