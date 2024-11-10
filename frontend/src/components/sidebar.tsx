@@ -20,7 +20,8 @@ export default function Sidebar({ theLocation, soilData }: SidebarProps) {
 
     return (
         <Card className="w-96 h-full overflow-hidden rounded-r-xl border-black shadow-xl ">
-            <CardHeader className="bg-gradient-to-r from-blue-500 to-green-500 text-white">
+            <CardHeader className="bg-gradient-to-r from-[#4FC3F7] to-[#1E88E5] text-white">
+
                 <CardTitle className="text-2xl font-bold">Soil Analysis</CardTitle>
                 <CardDescription className="text-gray-100">
                     {`Lat: ${theLocation.lat.toFixed(4)}, Lon: ${theLocation.lon.toFixed(4)}`}
