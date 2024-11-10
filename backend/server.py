@@ -7,7 +7,7 @@ from uagents.query import query
 from uagents.envelope import Envelope
  
 AGENT_ADDRESS = "agent1qfyv0rdcq6qzsa9rylulryuzaxj3xc6sdp8xfl8wdh97fdxmpm027qyyedu"
- 
+CHATBOT_ADDRESS= ""
 class TestRequest(Model):
     message: str
     lat: float
@@ -22,6 +22,13 @@ async def agent_query(req):
         return data["text"]
     return response
  
+async def chatbot_agent_query(req):
+    response = await query(destination=AGENT_ADDRESS, message=req, timeout=15)
+    print(req)
+    if isinstance(response, Envelope):
+        data = json.loads(response.decode_payload())
+        return data["text"]
+    return response
  
 app = FastAPI()
  
@@ -33,6 +40,15 @@ def read_root():
 async def make_agent_call(req: Request):
     model = UserRequest.parse_obj(await req.json())
     #print(model)
+    try:
+        res = await agent_query(model)
+        return f"successful call - agent response: {res}"
+    except Exception:
+        return "unsuccessful agent call"
+ 
+@app.post("/chatbot")
+async def make_agent_call(req: Request):
+    model = UserRequest.parse_obj(await req.json())
     try:
         res = await agent_query(model)
         return f"successful call - agent response: {res}"
