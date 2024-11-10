@@ -20,12 +20,15 @@ import {
 
 type SidebarProps = {
     theLocation?: Location
-    soilData?: SoilData
+    soilData?: SoilData,
+    soilDataArray: SoilData[],
     dates?: string[]
-    setDateState: any
+    setDateState: any,
+    droughtData: number[],
+    landDegradation: number[]
 }
 
-export default function Sidebar({ theLocation, soilData, dates, setDateState }: SidebarProps) {
+export default function Sidebar({ theLocation, soilData, dates, setDateState, soilDataArray, droughtData, landDegradation }: SidebarProps) {
     if (!theLocation || !soilData) {
         return null
     }
@@ -42,9 +45,9 @@ export default function Sidebar({ theLocation, soilData, dates, setDateState }: 
             <CardContent className="p-0">
                 <Tabs defaultValue="details" className="w-full">
                     <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="details">Details</TabsTrigger>
+                        <TabsTrigger value="details">Land Details</TabsTrigger>
+                        <TabsTrigger value="social">Social Details</TabsTrigger>
                         <TabsTrigger value="correlation">Correlation</TabsTrigger>
-                        <TabsTrigger value="chat">Chat</TabsTrigger>
                     </TabsList>
 
                     {/* Details Tab */}
@@ -130,18 +133,83 @@ export default function Sidebar({ theLocation, soilData, dates, setDateState }: 
                         <ScrollArea className="h-[calc(100vh-200px)]">
                             <div className="p-6 space-y-6">
                                 <h3 className="text-lg font-semibold">Correlation Graphs</h3>
+                                <ResponsiveContainer width="100%" height={200}>
+                                    <LineChart data={
+                                        Array.isArray(soilDataArray) && Array.isArray(droughtData)
+                                            ? soilDataArray.map((entry, index) => ({
+                                                date: entry.valid_date, // x-axis value from soilDataArray's valid_date
+                                                drought: droughtData[index] // y-axis value from droughtPercentages
+                                            }))
+                                            : []
+                                    }
+                                        margin={{ right: 30 }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="date" />
+                                        <YAxis label={{ value: "Drought %", angle: -90, position: 'middle' }} tickMargin={200} />
+                                        <Tooltip />
+                                        <Legend />
+                                        <Line type="monotone" dataKey="drought" stroke="#e63946" strokeWidth={4} />
+                                    </LineChart>
+
+                                </ResponsiveContainer>
+                                <ResponsiveContainer height={200}>
+                                    <LineChart data={
+                                        Array.isArray(soilDataArray) && Array.isArray(landDegradation)
+                                            ? soilDataArray.map((entry, index) => ({
+                                                date: entry.valid_date, // x-axis value from soilDataArray's valid_date
+                                                landDegradation: landDegradation[index] // y-axis value from droughtPercentages
+                                            }))
+                                            : []
+
+                                    }
+                                        margin={{ right: 30 }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="date" />
+                                        <YAxis label={{ value: "Degradation %", angle: -90, position: 'middle' }} tickMargin={200} />
+                                        <Tooltip />
+                                        <Legend />
+                                        <Line type="monotone" dataKey="landDegradation" stroke="#008000" strokeWidth={4} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                                <ResponsiveContainer height={200}>
+                                    <LineChart
+                                        data={
+                                            Array.isArray(droughtData) && Array.isArray(landDegradation)
+                                                ? droughtData.map((drought, index) => ({
+                                                    date: drought, // Assuming `drought` contains date information for x-axis consistency
+                                                    landDegradation: landDegradation[index]
+                                                }))
+                                                : []
+                                        }
+                                        margin={{ right: 30 }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="date" />
+                                        <YAxis
+                                            label={{ value: "Degradation %", angle: -90, position: 'middle' }}
+                                            tickMargin={200}
+                                        />
+                                        <Tooltip />
+                                        <Legend />
+                                        <Line type="monotone" dataKey="landDegradation" stroke="#008000" strokeWidth={4} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+
+
                             </div>
                         </ScrollArea>
                     </TabsContent>
-
-                    {/* Chat Tab */}
-                    <TabsContent value="chat">
-                        <ScrollArea className="h-[calc(100vh-250px)]">
-                            {/* Placeholder for chat content */}
+                    <TabsContent value="social">
+                        <ScrollArea className="h-[calc(100vh-200px)]">
+                            <div className="p-6 space-y-6">
+                                <h3 className="text-lg font-semibold">Socioeconomic Details</h3>
+                            </div>
                         </ScrollArea>
                     </TabsContent>
                 </Tabs>
             </CardContent>
-        </Card>
+        </Card >
     )
 }
