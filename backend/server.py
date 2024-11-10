@@ -5,8 +5,17 @@ from uagents import Model
 from agent_class import UserRequest
 from uagents.query import query
 from uagents.envelope import Envelope
+from fastapi.middleware.cors import CORSMiddleware
+
+
  
 AGENT_ADDRESS = "agent1qfyv0rdcq6qzsa9rylulryuzaxj3xc6sdp8xfl8wdh97fdxmpm027qyyedu"
+
+origins = [
+    "http://localhost:3000",  # Your React app's origin
+]
+
+
  
 class TestRequest(Model):
     message: str
@@ -24,6 +33,14 @@ async def agent_query(req):
  
  
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  
+    allow_credentials=True,  
+    allow_methods=["*"],  
+    allow_headers=["*"],  
+)
  
 @app.get("/")
 def read_root():
