@@ -15,7 +15,7 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-  } from "@/components/ui/select"
+} from "@/components/ui/select"
 
 
 type SidebarProps = {
@@ -55,14 +55,15 @@ export default function Sidebar({ theLocation, soilData, dates, setDateState }: 
                                     <h3 className="text-lg font-semibold">Date: </h3>
                                     <Select onValueChange={(v) => setDateState(v)}>
                                         <SelectTrigger className="w-[180px]">
-                                            <SelectValue placeholder={dates ? dates[dates?.length - 1] : "Choose a date"} />
+                                            <SelectValue placeholder={dates ? dates[0] : "Choose a date"} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectGroup>
                                                 <SelectLabel>Date</SelectLabel>
-                                                {dates?.map((date) => (
-                                                
-                                                    <SelectItem key={date} value={date}>{date}</SelectItem>
+                                                {dates?.map((date, index) => (
+                                                    <SelectItem key={date} value={date}>
+                                                        {index === 0 ? date : `${index} day${index > 1 ? 's' : ''} ago`}
+                                                    </SelectItem>
                                                 ))}
                                             </SelectGroup>
                                         </SelectContent>
