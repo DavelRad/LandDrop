@@ -39,16 +39,25 @@ async def query_handler(ctx: Context, sender: str, _query: UserRequest):
         location = get_address_from_coords(_query.lat, _query.lon)   
         population = get_population_data(_query.lat, _query.lon)
         poverty = get_poverty_data(_query.lat, _query.lon)
-        land_percentage = land_degradation_risk_percentage(response_land_data)
-        drought_percentage = drought_risk_percentage(response_land_data)
-        data = {} 
-        data["location"] = location
-        data["soil_data"] = response_land_data["data"]
-        data["population"] = population
-        data["poverty"] = poverty
+
+        land_percentage_response = land_degradation_risk_percentage(response_land_data["data"])
+        drought_percentage_response = drought_risk_percentage(response_land_data["data"])
+
+        land_percentage = [int(value) for value in land_percentage_response.split(",")]
+        drought_percentage = [int(value) for value in drought_percentage_response.split(",")]
+
+        data = {
+            "location": location,
+            "soil_data": response_land_data["data"],
+            "population": population,
+            "poverty": poverty,
+            "land_percentage": land_percentage,
+            "drought_percentage": drought_percentage,
+        }
+
+        # Generate summary if needed
         summary = risk_summary(data)
-        data["land_percentage"] = land_degradation_risk_percentage(response_land_data)
-        data["drought_percentage"] = drought_risk_percentage(response_land_data)
+        data["summary"] = summary
     
 
         ctx.logger.info(f"population: {population}")
@@ -65,8 +74,30 @@ async def query_handler(ctx: Context, sender: str, _query: UserRequest):
         await ctx.send(sender, Response(text="fail"))
 
  
+# predictor_agent = Agent(
+#     name="Predictor Agent",
+#     seed="Predictor Secret Phrase",
+#     port=8001,
+#     endpoint=["http://127.0.0.1:8001/submit"],
+# )
+
+# @predictor_agent.on_event("startup")
+# async def startup(ctx: Context):
+#     ctx.logger.info(f"Starting up {predictor_agent.name}")
+#     ctx.logger.info(f"With address: {predictor_agent.address}")
+#     ctx.logger.info(f"And wallet address: {predictor_agent.wallet.address()}")
+
+# @predictor_agent.on_query(model=UserRequest, replies={Response})
+# async def query_handler(ctx: Context, sender: str, _query: UserRequest):
+#     ctx.logger.info(f"Predictor agent received query from {sender}")
+#     with open("state.json", "r") as f:
+#         data = json.load(f)
+#     response = chatbot_query(_query.message, data["soil_data"], data["location"], data["land_percentage"], data["drought_percentage"], data["population"], data["poverty"])
+#     await ctx.send(sender, Response(text=response))
+
 bureau = Bureau(port=8001, endpoint=["http://127.0.0.1:8001/submit"])
 bureau.add(analyzer_agent)
+# bureau.add(predictor_agent)
 
 # Main execution block to run the agent.
 if __name__ == "__main__":
