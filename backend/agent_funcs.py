@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import json
-from api.ai import talk_to_chatbot
-from instructions import DROUGHT_RISK_PERCENTAGE_PROMPT, LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT, DROUGHT_RISK_PERCENTAGE_PROMPT,CHATBOT_INSTRUCTIONS, RISK_SUMMARY_PROMPT, SOIL_DATA_PREDICTOR_INSTRUCTION, LAND_RISK_PREDICTOR_PROMPT, DROUGHT_RISK_PREDICTOR_PROMPT, PREDICTION_RISK_SUMMARY_PROMPT, MIGRATION_PATTERNS_PROMPT, AREA_TYPE_PROMPT, GRADUATION_RATE_PROMPT
+from api.ai import talk_to_chatbot, talk_to_chatbot_2
+from instructions import DROUGHT_RISK_PERCENTAGE_PROMPT, LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT, DROUGHT_RISK_PERCENTAGE_PROMPT,CHATBOT_INSTRUCTIONS, RISK_SUMMARY_PROMPT, SOIL_DATA_PREDICTOR_INSTRUCTION, LAND_RISK_PREDICTOR_PROMPT, DROUGHT_RISK_PREDICTOR_PROMPT, PREDICTION_RISK_SUMMARY_PROMPT, ECONOMIST_DATA_PROMPT
 import re
 
 load_dotenv()
@@ -16,7 +16,7 @@ def risk_summary(data):
         },
         {
             "role": "user",
-            "content": f"This is the data you need to analyze: {data}"
+            "content": f"This is the data you need to analyze: {data}\n MAKE IT SHORT!"
         }
     ]
 
@@ -114,7 +114,7 @@ async def generate_soil_data_predictions(soil_data: list) -> list:
             "content": f"Here is the historical soil data: {soil_data}"
         }
     ]
-    response = talk_to_chatbot(messages)
+    response = talk_to_chatbot_2(messages)
     print(f"Raw LLM response: {response}")
     try:
         predicted_values_list = json.loads(response)  # Assuming LLM response is JSON-parsable
@@ -219,171 +219,39 @@ async def generate_summary_prediction(summary, soil_data, land_percentage, droug
         },
         {
             "role": "user",
-            "content": f"This is the data you need to analyze: {context}"
+            "content": f"This is the data you need to analyze: {context}\n MAKE IT SHORT!"
         }
     ]
 
     # Call the chatbot function
-    response = talk_to_chatbot(messages)
+    response = talk_to_chatbot_2(messages)
 
     # Clean the response by removing any extraneous formatting
     cleaned_response = re.sub(r'^```json|```$', '', response.strip())
     
     return cleaned_response
 
-def get_vegetation_level(location: str):
-    try:
-
-        # Prepare messages for the chatbot
-        messages = [
-            {
-                "role": "system",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": "You are an vegetation level expert that helps the user find the vegetation level based on a city, state, and country. The user will input the city, state, and country. Only send back the vegetation level as a number (between 0 and 100) and nothing else."
-                    }
-                ]
-            },
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": f"{location}"
-                    }
-                ]
-            }
-        ]
-
-        # Communicate with the chatbot to get the vegetation level
-        return talk_to_chatbot(messages)
-    except Exception as e:
-        raise SystemExit(f"Failed to make the request. Error: {e}")
-    
-def get_average_salary(location: str):
-    try:
-
-        # Prepare messages for the chatbot
-        messages = [
-            {
-                "role": "system",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": "You are an average salary expert that helps the user find the average salary based on a city, state, and country. The user will input the city, state, and country. Only send back the average salary as a number and nothing else."
-                    }
-                ]
-            },
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": f"{location}"
-                    }
-                ]
-            }
-        ]
-
-        # Communicate with the chatbot to get the average salary
-        return talk_to_chatbot(messages)
-    except Exception as e:
-        raise SystemExit(f"Failed to make the request. Error: {e}")
-
-def get_food_price_percentage(location: str):
-    try:
-        # Prepare messages for the chatbot
-        messages = [
-            {
-                "role": "system",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": "You are an food price evaluator expert that helps the user find the average grocery price as a percentage of the national average based on a city, state, and country. The user will input the city, state, and country. Only send back the grocery price percentage (e.g., 115 for 115%) as a number and nothing else."
-                    }
-                ]
-            },
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": f"{location}"
-                    }
-                ]
-            }
-        ]
-
-        # Communicate with the chatbot to get the food price percentage
-        return talk_to_chatbot(messages)
-    except Exception as e:
-        raise SystemExit(f"Failed to make the request. Error: {e}")
-def get_migration_patterns(location):
+def get_economist_data(location):
     """
-    Retrieve migration patterns for a specified location.
-
-    Parameters:
-    - location (str): The region or location identifier for which to fetch migration data.
-
-    Returns:
-    - dict: A dictionary containing the destination regions and their corresponding migration volume percentages.
+    Function to retrieve all economist data for the specified location in one call.
     """
-
     messages = [
         {
             "role": "system",
-            "content": MIGRATION_PATTERNS_PROMPT
+            "content": ECONOMIST_DATA_PROMPT
         },
         {
             "role": "user",
-            "content": f"The location for migration patterns analysis is: {location}."
-        }
-    ]
-
-    # Call the chatbot function to get migration patterns
-    response = talk_to_chatbot(messages)
-
-    # Clean up and format response if necessary
-    cleaned_response = re.sub(r'^```|```$', '', response.strip())
-    
-    return cleaned_response
-
-def get_area_type(location):
-    messages = [
-        {
-            "role": "system",
-            "content": AREA_TYPE_PROMPT
-        },
-        {
-            "role": "user",
-            "content": f"The location to classify is {location}."
-        }
-    ]
-
-    response = talk_to_chatbot(messages)
-    return response.strip()
-
-
-def get_graduation_rate(location):
-    """
-    Function to retrieve the graduation rate for a specified location.
-    """
-    # Define messages to send to the LLM
-    messages = [
-        {
-            "role": "system",
-            "content": GRADUATION_RATE_PROMPT
-        },
-        {
-            "role": "user",
-            "content": f"Please provide the graduation rate for the following location: {location}"
+            "content": f"Provide the economist data for the following location: {location}"
         }
     ]
 
     # Call the chatbot function
     response = talk_to_chatbot(messages)
-
-    # Clean the response, ensuring it only contains the percentage
-    cleaned_response = response.strip()
-    return cleaned_response
+    try:
+        # Parse the response to ensure it's a JSON-parsable list
+        economist_data_list = json.loads(response)
+        return economist_data_list
+    except json.JSONDecodeError:
+        print(f"Failed to parse LLM response: {response}")
+        return []

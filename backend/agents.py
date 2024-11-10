@@ -3,7 +3,7 @@ import json
 from dotenv import load_dotenv
 from uagents import Agent, Context, Model, Bureau
 from agent_class import UserRequest, Response
-from agent_funcs import drought_risk_percentage, get_average_salary, get_food_price_percentage, get_vegetation_level, land_degradation_risk_percentage, chatbot_query, risk_summary, generate_soil_data_predictions, predict_land_percentage, predict_drought_percentage, generate_summary_prediction, get_migration_patterns, get_area_type, get_graduation_rate
+from agent_funcs import drought_risk_percentage, get_economist_data, land_degradation_risk_percentage, chatbot_query, risk_summary, generate_soil_data_predictions, predict_land_percentage, predict_drought_percentage, generate_summary_prediction
 from api.location import get_address_from_coords, get_population_from_coords, get_poverty_from_coords 
 from api.weather import get_soil_data
 from agent_funcs import drought_risk_percentage, land_degradation_risk_percentage, chatbot_query, risk_summary
@@ -103,22 +103,19 @@ async def query_handler(ctx: Context, sender: str, message: Response):
 
         location = state_data.get("location", "unknown")
 
-        vegetation_level = get_vegetation_level(location)
-        average_salary = get_average_salary(location)
-        food_price_percentage = get_food_price_percentage(location)
-        migration_patterns = get_migration_patterns(location)
-        economic_diversity = get_area_type(location)
-        graduation_rate = get_graduation_rate(location)
+        economist_data_list = get_economist_data(location)
+        if not economist_data_list or len(economist_data_list) < 7:
+            raise ValueError("Incomplete data returned from get_economist_data")
 
         # Compile data into a response JSON
         economist_data = {
-            "location": location,
-            "vegetation_level": vegetation_level,
-            "average_salary": average_salary,
-            "food_price_percentage": food_price_percentage,
-            "migration_patterns": migration_patterns,
-            "economic_diversity": economic_diversity,
-            "graduation_rate": graduation_rate
+            "location": economist_data_list[0],
+            "vegetation_level": economist_data_list[1],
+            "average_salary": economist_data_list[2],
+            "food_price_percentage": economist_data_list[3],
+            "migration_patterns": economist_data_list[4],
+            "economic_diversity": economist_data_list[5],
+            "graduation_rate": economist_data_list[6]
         }
 
         ctx.logger.info(f"Compiled economist data: {economist_data}")
@@ -189,7 +186,7 @@ async def query_handler(ctx: Context, sender: str, message: Response):
             json.dump(prediction_json, f, indent=4)
 
         # Send a success response back
-        await ctx.send(sender, Response(text="Prediction JSON generated successfully."))
+        ctx.send("agent1qfyv0rdcq6qzsa9rylulryuzaxj3xc6sdp8xfl8wdh97fdxmpm027qyyedu", Response(text="success"))
 
     except Exception as e:
         # Log any errors and send a failure response
