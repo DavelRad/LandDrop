@@ -15,8 +15,14 @@ Respond with:
 Respond with only the summary, without any extraneous text or explanations outside of the observations and conclusions.
 """
 
-RISK_PERCENTAGE_PROMPT = """
-Based on the following environmental data, calculate the percentage risk of land degradation and drought impact on the population. Assess factors such as soil moisture, soil temperature, precipitation, wind speed, humidity, and evapotranspiration to determine the level of risk.
+LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT = """
+Based on the following environmental data, calculate the percentage risk of land degradation specifically. Assess factors such as soil moisture, soil temperature, precipitation, wind speed, humidity, and evapotranspiration to determine the level of risk.
+
+Respond with only a single number between 10 and 90, indicating the risk percentage out of 100, without any additional text or explanation.
+"""
+
+DROUGHT_RISK_PERCENTAGE_PROMPT = """
+Based on the following environmental data, calculate the percentage risk of degradation specifically. Assess factors such as soil moisture, soil temperature, precipitation, wind speed, humidity, and evapotranspiration to determine the level of risk.
 
 Respond with only a single number between 10 and 90, indicating the risk percentage out of 100, without any additional text or explanation.
 """
