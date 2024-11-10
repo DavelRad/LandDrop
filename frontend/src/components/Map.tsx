@@ -14,35 +14,35 @@ export type Location = {
 }
 
 export type SoilData = {
-    date: string
     bulk_soil_density: number
-    skin_temp_max: number
-    skin_temp_avg: number
-    skin_temp_min: number
-    temp_2m_avg: number
-    precip: number
-    specific_humidity: number
-    evapotranspiration: number
-    pres_avg: number
-    wind_10m_spd_avg: number
     dlwrf_avg: number
     dlwrf_max: number
+    dlwrf_net: number
     dswrf_avg: number
     dswrf_max: number
     dswrf_net: number
-    dlwrf_net: number
+    evapotranspiration: number
+    precip: number
+    pres_avg: number
+    skin_temp_avg: number
+    skin_temp_max: number
+    skin_temp_min: number
     soilm_0_10cm: number
+    soilm_100_200cm: number
     soilm_10_40cm: number
     soilm_40_100cm: number
-    soilm_100_200cm: number
-    v_soilm_0_10cm: number
-    v_soilm_10_40cm: number
-    v_soilm_40_100cm: number
-    v_soilm_100_200cm: number
     soilt_0_10cm: number
+    soilt_100_200cm: number
     soilt_10_40cm: number
     soilt_40_100cm: number
-    soilt_100_200cm: number
+    specific_humidity: number
+    temp_2m_avg: number
+    v_soilm_0_10cm: number
+    v_soilm_100_200cm: number
+    v_soilm_10_40cm: number
+    v_soilm_40_100cm: number
+    valid_date: string
+    wind_10m_spd_avg: number
 }
 
 export default function Map() {
@@ -51,44 +51,68 @@ export default function Map() {
     const [location, setLocation] = useState<Location | null>(null)
     const [soilData, setSoilData] = useState<SoilData | null>(null)
 
-    // Function to simulate fetching soil data
-    const fetchSoilData = async (): Promise<SoilData> => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve({
-                    date: "2023-05-15",
-                    bulk_soil_density: 1390,
-                    skin_temp_max: 34.5,
-                    skin_temp_avg: 26.5,
-                    skin_temp_min: 13.5,
-                    temp_2m_avg: 22.1,
-                    precip: 0,
-                    specific_humidity: 0.00329,
-                    evapotranspiration: 0.925,
-                    pres_avg: 918.072,
-                    wind_10m_spd_avg: 2.877,
-                    dlwrf_avg: 350.53,
-                    dlwrf_max: 600.53,
-                    dswrf_avg: 473.555,
-                    dswrf_max: 870.555,
-                    dswrf_net: -23.408,
-                    dlwrf_net: 416.075,
-                    soilm_0_10cm: 14.804,
-                    soilm_10_40cm: 53.016,
-                    soilm_40_100cm: 112.557,
-                    soilm_100_200cm: 200.732,
-                    v_soilm_0_10cm: 0.148,
-                    v_soilm_10_40cm: 0.177,
-                    v_soilm_40_100cm: 0.188,
-                    v_soilm_100_200cm: 0.201,
-                    soilt_0_10cm: 19.9,
-                    soilt_10_40cm: 15,
-                    soilt_40_100cm: 14.2,
-                    soilt_100_200cm: 14.6
-                })
-            }, 500)
-        })
+    // now fetch the soil date from backend
+
+    const fetchSoilData = async (loc: Location) => {
+        try {
+            const response = await fetch('http://localhost:8000/endpoint', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    lat: loc.lat,
+                    lon: loc.lon,
+                }),
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch soil data')
+            }
+
+            const data = await response.json()
+
+            // Select the most recent soil data entry
+            const recentSoilData: SoilData = {
+                valid_date: data.soil_data[0].valid_date,
+                bulk_soil_density: data.soil_data[0].bulk_soil_density,
+                temp_2m_avg: data.soil_data[0].temp_2m_avg,
+                evapotranspiration: data.soil_data[0].evapotranspiration,
+                wind_10m_spd_avg: data.soil_data[0].wind_10m_spd_avg,
+                precip: data.soil_data[0].precip,
+                v_soilm_0_10cm: data.soil_data[0].v_soilm_0_10cm,
+                v_soilm_10_40cm: data.soil_data[0].v_soilm_10_40cm,
+                v_soilm_40_100cm: data.soil_data[0].v_soilm_40_100cm,
+                v_soilm_100_200cm: data.soil_data[0].v_soilm_100_200cm,
+                dlwrf_avg: 0,
+                dlwrf_max: 0,
+                dlwrf_net: 0,
+                dswrf_avg: 0,
+                dswrf_max: 0,
+                dswrf_net: 0,
+                pres_avg: 0,
+                skin_temp_avg: 0,
+                skin_temp_max: 0,
+                skin_temp_min: 0,
+                soilm_0_10cm: 0,
+                soilm_100_200cm: 0,
+                soilm_10_40cm: 0,
+                soilm_40_100cm: 0,
+                soilt_0_10cm: 0,
+                soilt_100_200cm: 0,
+                soilt_10_40cm: 0,
+                soilt_40_100cm: 0,
+                specific_humidity: 0
+            }
+
+            return recentSoilData
+        } catch (error) {
+            console.error(error)
+            return null
+        }
     }
+
+
 
     useEffect(() => {
         if (map.current || !mapContainer.current) return
@@ -101,7 +125,6 @@ export default function Map() {
             zoom: 9,
         })
 
-        // Handle map click event to set location and fetch soil data
         map.current.on('click', async (e) => {
             const clickedLocation = {
                 lat: e.lngLat.lat,
@@ -110,14 +133,14 @@ export default function Map() {
             console.log("Clicked location:", clickedLocation)
             setLocation(clickedLocation)
 
-            // Fetch and set soil data after setting location
-            const fetchedSoilData = await fetchSoilData()
+            const fetchedSoilData = await fetchSoilData(clickedLocation)
             console.log("Fetched soil data:", fetchedSoilData)
             setSoilData(fetchedSoilData)
+
         })
 
         return () => {
-            map.current?.remove()  // Clean up map on component unmount
+            map.current?.remove()
         }
     }, [])
 
