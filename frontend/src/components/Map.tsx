@@ -1,9 +1,12 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import Sidebar from '@/components/sidebar'
+import ChatComponent from '@/components/ChatComponent'
+import LoadSideBar from '@/components/LoadSideBar'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ""
 const style = process.env.NEXT_PUBLIC_MAPBOX_STYLE || ""
@@ -50,11 +53,14 @@ export default function Map() {
     const map = useRef<mapboxgl.Map | null>(null)
     const [location, setLocation] = useState<Location | null>(null)
     const [soilData, setSoilData] = useState<SoilData | null>(null)
+    const [loadingstatus, setIsloading] = useState(false)
 
-    // now fetch the soil date from backend
-
+    // Fetch the soil data from backend
     const fetchSoilData = async (loc: Location) => {
         try {
+            setIsloading(true) // Start loading
+            setSoilData(null) // Reset previous data
+
             const response = await fetch('http://localhost:8000/endpoint', {
                 method: 'POST',
                 headers: {
@@ -72,7 +78,6 @@ export default function Map() {
 
             const data = await response.json()
 
-            // Select the most recent soil data entry
             const recentSoilData: SoilData = {
                 valid_date: data.soil_data[0].valid_date,
                 bulk_soil_density: data.soil_data[0].bulk_soil_density,
@@ -105,18 +110,16 @@ export default function Map() {
                 specific_humidity: 0
             }
 
-            return recentSoilData
+            setSoilData(recentSoilData) // Set fetched data
         } catch (error) {
             console.error(error)
-            return null
+        } finally {
+            setIsloading(false) // Stop loading
         }
     }
 
-
-
     useEffect(() => {
         if (map.current || !mapContainer.current) return
-
 
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
@@ -133,28 +136,58 @@ export default function Map() {
             console.log("Clicked location:", clickedLocation)
             setLocation(clickedLocation)
 
-            const fetchedSoilData = await fetchSoilData(clickedLocation)
-            console.log("Fetched soil data:", fetchedSoilData)
-            setSoilData(fetchedSoilData)
-
+            await fetchSoilData(clickedLocation) // Fetch data for clicked location
         })
 
-        return () => {
-            map.current?.remove()
-        }
+        return () => map.current?.remove()
     }, [])
 
     return (
         <div className="relative h-screen">
-            {location && soilData && (
-                <div className="absolute top-0 left-0 right-0 z-10 m-4 max-w-48">
-                    <Sidebar theLocation={location} soilData={soilData} />
-                </div>
-            )}
+            <AnimatePresence>
+                {loadingstatus && (
+                    <motion.div
+                        key="loading"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute top-0 left-0 right-0 z-10"
+                    >
+                        <LoadSideBar />
+                    </motion.div>
+                )}
+                {!loadingstatus && location && soilData && (
+                    <motion.div
+                        key="sidebar"
+                        initial={{ opacity: 0, x: -100 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -100 }}
+                        transition={{ duration: 0.3 }}
+                        className="absolute top-0 left-0 right-0 z-10 m-4"
+                    >
+                        <Sidebar theLocation={location} soilData={soilData} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="w-full h-full relative">
                 <div ref={mapContainer} className="w-full h-full" />
             </div>
-        </div>
 
+            <AnimatePresence>
+                {location && soilData && (
+                    <motion.div
+                        key="chat"
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 50 }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute bottom-2 right-4 z-20"
+                    >
+                        <ChatComponent />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
     )
 }
