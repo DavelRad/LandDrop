@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from uagents import Agent, Context, Model, Bureau
 from agent_class import UserRequest, Response
 from agent_funcs import risk_summary, risk_percentage
-from api.weather import get_soil_data
+from api.functions import get_soil_data
 from uagents.setup import fund_agent_if_low
 import json
 from agent_funcs import chatbot_query
