@@ -1,8 +1,9 @@
  
+import json
 from dotenv import load_dotenv
 from uagents import Agent, Context, Model, Bureau
 from agent_class import UserRequest, Response
-from agent_funcs import drought_risk_percentage, land_degradation_risk_percentage, location_data_assistant, risk_summary
+from agent_funcs import drought_risk_percentage, land_degradation_risk_percentage, chatbot_query, risk_summary
 from api.functions import get_address_from_coords, get_soil_data, get_population_data, get_poverty_data
 from uagents.setup import fund_agent_if_low
 
@@ -38,22 +39,26 @@ async def query_handler(ctx: Context, sender: str, _query: UserRequest):
         location = get_address_from_coords(_query.lat, _query.lon)   
         population = get_population_data(_query.lat, _query.lon)
         poverty = get_poverty_data(_query.lat, _query.lon)
-
+        land_percentage = land_degradation_risk_percentage(response_land_data)
+        drought_percentage = drought_risk_percentage(response_land_data)
         data = {} 
         data["location"] = location
         data["soil_data"] = response_land_data["data"]
         data["population"] = population
         data["poverty"] = poverty
         summary = risk_summary(data)
-        land_percentage = land_degradation_risk_percentage(response_land_data)
-        drought_percentage = drought_risk_percentage(response_land_data)
-        
+        data["land_percentage"] = land_degradation_risk_percentage(response_land_data)
+        data["drought_percentage"] = drought_risk_percentage(response_land_data)
+    
 
         ctx.logger.info(f"population: {population}")
         ctx.logger.info(f"poverty: {poverty}")
         ctx.logger.info(f"response_land_data: {response_land_data}")
         ctx.logger.info(f"land_percentage: {land_percentage}")
         ctx.logger.info(f"drought_percentage: {drought_percentage}")
+
+        with open("state.json", "w") as f:
+            json.dump(data, f, indent=4)
 
         await ctx.send(sender, Response(text="success"))
     except Exception:

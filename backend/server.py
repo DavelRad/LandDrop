@@ -5,9 +5,19 @@ from uagents import Model
 from agent_class import UserRequest
 from uagents.query import query
 from uagents.envelope import Envelope
+from fastapi.middleware.cors import CORSMiddleware
+
+
  
 AGENT_ADDRESS = "agent1qfyv0rdcq6qzsa9rylulryuzaxj3xc6sdp8xfl8wdh97fdxmpm027qyyedu"
 CHATBOT_ADDRESS= ""
+
+origins = [
+    "http://localhost:3000",  # Your React app's origin
+]
+
+
+ 
 class TestRequest(Model):
     message: str
     lat: float
@@ -31,6 +41,14 @@ async def chatbot_agent_query(req):
     return response
  
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  
+    allow_credentials=True,  
+    allow_methods=["*"],  
+    allow_headers=["*"],  
+)
  
 @app.get("/")
 def read_root():
@@ -51,7 +69,9 @@ async def make_agent_call(req: Request):
     model = UserRequest.parse_obj(await req.json())
     try:
         res = await agent_query(model)
-        return f"successful call - agent response: {res}"
+        with open('state.json', 'r') as file:
+            data = json.load(file)
+        return data
     except Exception:
         return "unsuccessful agent call"
  

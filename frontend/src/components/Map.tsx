@@ -1,9 +1,13 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+
+import { motion, AnimatePresence } from 'framer-motion'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import Sidebar from '@/components/sidebar'
+import ChatComponent from '@/components/ChatComponent'
+
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ""
 const style = process.env.NEXT_PUBLIC_MAPBOX_STYLE || ""
@@ -48,10 +52,11 @@ export type SoilData = {
 export default function Map() {
     const mapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<mapboxgl.Map | null>(null)
+    const markerRef = useRef<mapboxgl.Marker | null>(null)
     const [location, setLocation] = useState<Location | null>(null)
     const [soilData, setSoilData] = useState<SoilData | null>(null)
 
-    // Function to simulate fetching soil data
+
     const fetchSoilData = async (): Promise<SoilData> => {
         return new Promise((resolve) => {
             setTimeout(() => {
@@ -101,36 +106,65 @@ export default function Map() {
             zoom: 9,
         })
 
-        // Handle map click event to set location and fetch soil data
+
         map.current.on('click', async (e) => {
             const clickedLocation = {
                 lat: e.lngLat.lat,
                 lon: e.lngLat.lng
             }
-            console.log("Clicked location:", clickedLocation)
             setLocation(clickedLocation)
 
-            // Fetch and set soil data after setting location
             const fetchedSoilData = await fetchSoilData()
-            console.log("Fetched soil data:", fetchedSoilData)
             setSoilData(fetchedSoilData)
+
+            if (markerRef.current) {
+                markerRef.current.remove()
+            }
+
+
+            markerRef.current = new mapboxgl.Marker({ color: 'red' })
+                .setLngLat([clickedLocation.lon, clickedLocation.lat])
+                .addTo(map.current!)
         })
 
         return () => {
-            map.current?.remove()  // Clean up map on component unmount
+            map.current?.remove()
         }
     }, [])
 
     return (
         <div className="relative h-screen">
-            {location && soilData && (
-                <div className="absolute top-0 left-0 right-0 z-10 m-4 max-w-48">
-                    <Sidebar theLocation={location} soilData={soilData} />
-                </div>
-            )}
+            <AnimatePresence>
+                {location && soilData && (
+                    <motion.div
+                        key="sidebar"
+                        initial={{ opacity: 0, y: -50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -50 }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute top-0 left-0 right-0 z-10 m-4 max-w-48"
+                    >
+                        <Sidebar theLocation={location} soilData={soilData} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
             <div className="w-full h-full relative">
                 <div ref={mapContainer} className="w-full h-full" />
             </div>
+            <AnimatePresence>
+                {location && soilData && (
+                    <motion.div
+                        key="chat"
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 50 }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute bottom-2 right-4 z-20"
+                    >
+                        <ChatComponent />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
 
     )
