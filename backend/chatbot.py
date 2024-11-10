@@ -14,8 +14,8 @@ load_dotenv()
 chatbot_agent = Agent(
     name="Chatbot Agent",
     seed="Chatbot Secret Phrase",
-    port=8001,
-    endpoint=["http://127.0.0.1:8001/submit"],
+    port=8002,
+    endpoint=["http://127.0.0.1:8002/submit"],
 )
 fund_agent_if_low(chatbot_agent.wallet.address())
 
