@@ -60,7 +60,8 @@ export default function Map() {
     const [selectedDate, setSelectedDate] = useState<string>('')
     const [dates, setDates] = useState<string[]>([])
     const [soilDataArray, setSoilDataArray] = useState<SoilData[]>([]);
-    
+    const [checkState, setCheckState] = useState<String>('');
+
 
     const fetchSoilData = async (lat: number, lon: number): Promise<SoilData | null> => {
         try {
@@ -82,7 +83,9 @@ export default function Map() {
             const data = await response.json()
             setDates(data.soil_data.map((soilData: SoilData) => soilData.valid_date))
             setSoilDataArray(data.soil_data);
-            return !selectedDate ? data.soil_data[0] : data.soil_data.find((soilData: SoilData) => soilData.valid_date === selectedDate)
+
+            setCheckState(data.soil_data);
+            return !selectedDate ? data.soil_data[data.soil_data.length - 1] : data.soil_data.find((soilData: SoilData) => soilData.valid_date === selectedDate)
         } catch (error) {
             console.error('Error fetching soil data:', error)
             return null
@@ -92,9 +95,13 @@ export default function Map() {
     }
 
     useEffect(() => {
+        console.log("Soil data, ", checkState);
+    }, [checkState])
+
+    useEffect(() => {
         if (soilDataArray && soilDataArray.length > 0) {
             const selectedSoilData = soilDataArray.find((data: SoilData) => data.valid_date === selectedDate);
-            setSoilData(selectedSoilData || soilDataArray[0]);
+            setSoilData(selectedSoilData || soilDataArray[soilDataArray.length - 1]);
             console.log(selectedDate);
         }
     }, [selectedDate, soilData]);
@@ -139,7 +146,7 @@ export default function Map() {
     return (
         <div className="relative h-screen">
             <AnimatePresence>
-                 {loadingStatus && (
+                {loadingStatus && (
                     <motion.div
                         key="loading"
                         initial={{ opacity: 0, y: -50 }}
@@ -177,7 +184,7 @@ export default function Map() {
                         transition={{ duration: 0.5 }}
                         className="absolute bottom-2 right-4 z-20"
                     >
-                        { !loadingStatus && 
+                        {!loadingStatus &&
                             <ChatComponent />
                         }
                     </motion.div>
