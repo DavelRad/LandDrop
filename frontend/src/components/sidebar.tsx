@@ -40,7 +40,7 @@ export default function Sidebar({ theLocation, soilData }: SidebarProps) {
                         <ScrollArea className="h-[calc(100vh-200px)]">
                             <div className="p-6 space-y-6">
                                 <div className="flex justify-between items-center">
-                                    <h3 className="text-lg font-semibold">Date: {soilData.date}</h3>
+                                    <h3 className="text-lg font-semibold">Date: {soilData.valid_date}</h3>
                                     <Badge variant="outline" className="text-sm">
                                         {soilData.precip === 0 ? 'No Rain' : `${soilData.precip} mm Rain`}
                                     </Badge>
