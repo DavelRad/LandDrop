@@ -5,14 +5,17 @@ from uagents import Model
 from agent_class import UserRequest
 from uagents.query import query
 from uagents.envelope import Envelope
+from fastapi.middleware.cors import CORSMiddleware
+
+
  
 AGENT_ADDRESS = "agent1qfyv0rdcq6qzsa9rylulryuzaxj3xc6sdp8xfl8wdh97fdxmpm027qyyedu"
 CHATBOT_ADDRESS= ""
-class TestRequest(Model):
-    message: str
-    lat: float
-    lon: float
-    user: str = None
+
+origins = [
+    "http://localhost:3000",  # Your React app's origin
+]
+ 
  
 async def agent_query(req):
     response = await query(destination=AGENT_ADDRESS, message=req, timeout=15)
@@ -31,6 +34,14 @@ async def chatbot_agent_query(req):
     return response
  
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  
+    allow_credentials=True,  
+    allow_methods=["*"],  
+    allow_headers=["*"],  
+)
  
 @app.get("/")
 def read_root():

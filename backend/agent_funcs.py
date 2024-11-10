@@ -3,6 +3,7 @@ import json
 from api.ai import talk_to_chatbot
 from instructions import LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT, DROUGHT_RISK_PERCENTAGE_PROMPT,CHATBOT_INSTRUCTIONS
 
+
 load_dotenv()
 
 def land_degradation_risk_percentage(data):
@@ -10,13 +11,22 @@ def land_degradation_risk_percentage(data):
     messages = [
     {
         "role": "system",
-        "content": f"Here is your prompt: {LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT}. Remember to only respond with a single number between 10 and 90."
-    },
-    {
+        "content": [
+            {
+                "type": "text",
+                "text": f"Here is your prompt: {LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT}"
+            }
+        ],
         "role": "user",
-        "content": f"This is the data reference: {data}"
+        "content": [
+            {
+                "type": "text",
+                "text": f"This is the data you need to analyze: {data}"
+            }
+        ],
     }
-]
+    ]
+
     response = talk_to_chatbot(messages)
     return response
 
