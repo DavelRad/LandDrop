@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
  
 AGENT_ADDRESS = "agent1qfyv0rdcq6qzsa9rylulryuzaxj3xc6sdp8xfl8wdh97fdxmpm027qyyedu"
+CHATBOT_ADDRESS= "agent1qtu8y0899lru8x9mm60zf2v07q9uqe4l4rc07e82rrss4hsa3tqjvrt6276"
 
 origins = [
     "http://localhost:3000",  # Your React app's origin
@@ -31,6 +32,13 @@ async def agent_query(req):
         return data["text"]
     return response
  
+async def chatbot_agent_query(req):
+    response = await query(destination=CHATBOT_ADDRESS, message=req, timeout=15)
+    print(req)
+    if isinstance(response, Envelope):
+        data = json.loads(response.decode_payload())
+        return data["text"]
+    return response
  
 app = FastAPI()
 
@@ -52,9 +60,19 @@ async def make_agent_call(req: Request):
     #print(model)
     try:
         res = await agent_query(model)
-        with open('state.json', 'r') as file:
-            data = json.load(file)
-        return data
+        return f"successful call - agent response: {res}"
     except Exception:
         return "unsuccessful agent call"
+ 
+@app.post("/chatbot")
+async def make_agent_call(req: Request):
+    model = UserRequest.parse_obj(await req.json())
+    try:
+        res = await chatbot_agent_query(model)
+        if res:
+            return {"status": "success", "data": res}
+        else:
+            return {"status": "fail", "message": "No data found for the location."}
+    except Exception as e:
+        return {"status": "error", "message": "Unsuccessful agent call", "details": str(e)}
  
