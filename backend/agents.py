@@ -37,8 +37,8 @@ async def query_handler(ctx: Context, sender: str, _query: UserRequest):
         response_land_data = get_soil_data(_query.lat, _query.lon)
         summary = risk_summary(response_land_data)
         percentage = risk_percentage(response_land_data, summary)
-        # ctx.logger.info("response_land_data", response_land_data)
-        # ctx.logger.info("summary", summary)
+        ctx.logger.info(f"response_land_data: {response_land_data}")
+        ctx.logger.info(f"summary: {summary}")
         ctx.logger.info(f"percentage: {percentage}")
         await ctx.send(sender, Response(text="success", land_data=response_land_data, summary=summary, risk_percentage=int(percentage)))
     except Exception:
