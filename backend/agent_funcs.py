@@ -1,9 +1,26 @@
 from dotenv import load_dotenv
 import json
 from api.ai import talk_to_chatbot
-from instructions import LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT, DROUGHT_RISK_PERCENTAGE_PROMPT,CHATBOT_INSTRUCTIONS
+from instructions import LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT, DROUGHT_RISK_PERCENTAGE_PROMPT,CHATBOT_INSTRUCTIONS, RISK_SUMMARY_PROMPT
 
 load_dotenv()
+def risk_summary(data):
+    """
+    Function to return the risk summary based on the data.
+    """
+    messages = [
+        {
+            "role": "system",
+            "content": f"Here is your prompt: {RISK_SUMMARY_PROMPT}"
+        },
+        {
+            "role": "user",
+            "content": f"This is the data you need to analyze: {data}"
+        }
+    ]
+
+    response = talk_to_chatbot(messages)
+    return response
 
 def land_degradation_risk_percentage(data):
     print('in here')
@@ -35,7 +52,7 @@ def drought_risk_percentage(data):
     response = talk_to_chatbot(messages)
     return response
 
-def location_data_assistant(query, land_data, summary, risk_percentage, location, city):
+def chatbot_query(query, land_data, summary, risk_percentage, location, city):
 
     context = "Here is the information about various locations:\n"
 
