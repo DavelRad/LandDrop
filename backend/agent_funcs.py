@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import json
 from api.ai import talk_to_chatbot
-from instructions import RISK_SUMMARY_PROMPT, LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT, DROUGHT_RISK_PERCENTAGE_PROMPT,CHATBOT_INSTRUCTIONS
+from instructions import LAND_DEGRADATION_RISK_PERCENTAGE_PROMPT, DROUGHT_RISK_PERCENTAGE_PROMPT,CHATBOT_INSTRUCTIONS
 
 load_dotenv()
 
