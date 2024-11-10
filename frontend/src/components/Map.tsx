@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+
 import { motion, AnimatePresence } from 'framer-motion'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import Sidebar from '@/components/sidebar'
 import ChatComponent from '@/components/ChatComponent'
+
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ""
 const style = process.env.NEXT_PUBLIC_MAPBOX_STYLE || ""
@@ -54,6 +56,7 @@ export default function Map() {
     const [location, setLocation] = useState<Location | null>(null)
     const [soilData, setSoilData] = useState<SoilData | null>(null)
 
+
     const fetchSoilData = async (): Promise<SoilData> => {
         return new Promise((resolve) => {
             setTimeout(() => {
@@ -95,12 +98,14 @@ export default function Map() {
     useEffect(() => {
         if (map.current || !mapContainer.current) return
 
+
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
             style: style,
             center: [-74.5, 40],
             zoom: 9,
         })
+
 
         map.current.on('click', async (e) => {
             const clickedLocation = {
@@ -161,5 +166,6 @@ export default function Map() {
                 )}
             </AnimatePresence>
         </div>
+
     )
 }
