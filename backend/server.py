@@ -72,7 +72,8 @@ async def make_agent_call(req: Request):
         res = await chatbot_agent_query(model)
         with open('chat.json', 'r') as file:
             data = json.load(file)
-        return data
+        response = data[-1]["response"]
+        return response
     except Exception as e:
         return {"status": "error", "message": "Unsuccessful agent call", "details": str(e)}
  
